@@ -43,6 +43,7 @@ app.get('/', (req, res) => {
 
 require('./server/routes/configuracion')(app);
 require('./server/routes/servicios')(app);
+require('./server/routes/personas')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
