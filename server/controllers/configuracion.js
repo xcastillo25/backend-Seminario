@@ -2,6 +2,16 @@ const { Configuracion } = require('../models');
 
 const mostrarConfiguracion = async (req, res) => {
     try {
+        const configuraciones = await Configuracion.findAll();
+        res.status(200).json({ configuraciones });
+    } catch (error) {
+        console.error('Error en mostrarConfiguracion:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+const mostrarConfiguracionActiva = async (req, res) => {
+    try {
         const configuraciones = await Configuracion.findAll({
             where: {
                 activo: true
@@ -87,6 +97,6 @@ const eliminarConfiguracion = async (req, res) => {
 };
 
 module.exports = {
-    mostrarConfiguracion, crearConfiguracion, actualizarConfiguracion, eliminarConfiguracion,
-    toggleActivoConfiguracion
+    mostrarConfiguracion, mostrarConfiguracionActiva, crearConfiguracion, actualizarConfiguracion, 
+    eliminarConfiguracion, toggleActivoConfiguracion
 };

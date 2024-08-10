@@ -1,7 +1,6 @@
-const agua = require('./agua');
-const clientes = require('./clientes');
+const configuracion = require('./configuracion');
+const servicios = require('./servicios');
 
 module.exports = {
-    agua,
-    clientes
+    configuracion, servicios
 }
