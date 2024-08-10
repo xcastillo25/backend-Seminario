@@ -41,8 +41,8 @@ app.get('/', (req, res) => {
 });
 //
 
-require('./server/routes/agua')(app);
-require('./server/routes/clientes')(app);
+require('./server/routes/configuracion')(app);
+require('./server/routes/servicios')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
