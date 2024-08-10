@@ -35,11 +35,14 @@ app.use(cors({
 
 // ESPACIO PARA LAS SOLICITUDES
 app.get('/', (req, res) => {
+
     res.status(200).send({ message: 'Bienvenido a Proyecto Lomas De Salamá' });
+
 });
 //
 
 require('./server/routes/agua')(app);
+require('./server/routes/clientes')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
