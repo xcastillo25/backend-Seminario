@@ -6,7 +6,7 @@ const mostrarServicios = async (req, res) => {
         const servicios = await Servicio.findAll();
         res.status(200).json({ servicios });
     } catch (error) {
-        console.error('Error en mostrarServicios:', error);
+        console.error('Error en mostrar los Servicios:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
@@ -44,7 +44,7 @@ const toggleActivoServicio = async (req, res) => {
 
         res.status(200).json({ message: 'Estado del servicio actualizado con éxito.', servicio });
     } catch (error) {
-        console.error('Error en toggleActivoServicio:', error);
+        console.error('Error al cambiar el estado del servicio:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
@@ -57,7 +57,7 @@ const crearServicio = async (req, res) => {
 
         res.status(201).json({ nuevoServicio });
     } catch (error) {
-        console.error('Error en crearServicio:', error);
+        console.error('Error en crear un Servicio:', error);
         res.status(400).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
@@ -77,7 +77,7 @@ const actualizarServicio = async (req, res) => {
 
         res.status(200).json({ message: 'Servicio actualizado con éxito.' });
     } catch (error) {
-        console.error('Error en actualizarServicio:', error);
+        console.error('Error en actualizar el Servicio:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
@@ -92,7 +92,7 @@ const eliminarServicio = async (req, res) => {
 
         res.status(200).json({ message: 'Servicio eliminado definitivamente con éxito.' });
     } catch (error) {
-        console.error('Error en eliminarServicio:', error);
+        console.error('Error en eliminar el Servicio:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
