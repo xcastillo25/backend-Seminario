@@ -86,7 +86,7 @@ const eliminarServicio = async (req, res) => {
     const { idservicio } = req.params;
 
     try {
-        await Servicio.destroy({
+        await Servicios.destroy({
             where: { idservicio: idservicio }
         });
 
