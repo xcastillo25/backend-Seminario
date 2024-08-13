@@ -44,6 +44,7 @@ app.get('/', (req, res) => {
 require('./server/routes/configuracion')(app);
 require('./server/routes/servicios')(app);
 require('./server/routes/personas')(app);
+require('./server/routes/pagos')(app);
 require('./server/routes/historial-servicios')(app);
 
 app.get('*', (req, res) => {

@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
                 references: {
-                    model: 'tblconfiguracion', // Nombre de la tabla con la que se relaciona
+                    model: 'tblconfiguracion', 
                     key: 'idconfiguracion'
                 }
             },
