@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-    const Servicio = sequelize.define(
-        'Servicio', 
+    const Servicios = sequelize.define(
+        'Servicios', 
         {
             idservicio: {
                 type: DataTypes.INTEGER,
@@ -41,12 +41,12 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     // Asociación con tblconfiguracion
-    Servicio.associate = (models) => {
-        Servicio.belongsTo(models.Configuracion, {
+    Servicios.associate = (models) => {
+        Servicios.belongsTo(models.Configuracion, {
             foreignKey: 'idconfiguracion',
             as: 'configuracion'
         });
     };
 
-    return Servicio;
+    return Servicios;
 };

@@ -46,7 +46,7 @@ module.exports = (sequelize, Datatypes) => {
         }
     );
     Lotes.associate = (models) => {
-        Lotes.belongsTo(models.Servicio, {
+        Lotes.belongsTo(models.Servicios, {
             foreignKey: 'idservicio',
             as: 'servicios',
         });
