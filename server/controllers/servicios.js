@@ -1,9 +1,9 @@
-const { Servicio } = require('../models');
+const { Servicios } = require('../models');
 
 
 const mostrarServicios = async (req, res) => {
     try {
-        const servicios = await Servicio.findAll();
+        const servicios = await Servicios.findAll();
         res.status(200).json({ servicios });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
@@ -13,7 +13,7 @@ const mostrarServicios = async (req, res) => {
 
 const mostrarServiciosActivos = async (req, res) => {
     try {
-        const servicios = await Servicio.findAll({
+        const servicios = await Servicios.findAll({
             where: {
                 activo: true
             }
@@ -30,7 +30,7 @@ const toggleActivoServicio = async (req, res) => {
 
     try {
         // Buscar el servicio por su ID
-        const servicio = await Servicio.findByPk(idservicio);
+        const servicio = await Servicios.findByPk(idservicio);
 
         if (!servicio) {
             return res.status(404).json({ message: 'Servicio no encontrado.' });
@@ -86,7 +86,7 @@ const eliminarServicio = async (req, res) => {
     const { idservicio } = req.params;
 
     try {
-        await Servicio.destroy({
+        await Servicios.destroy({
             where: { idservicio: idservicio }
         });
 
