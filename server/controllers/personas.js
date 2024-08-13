@@ -10,6 +10,45 @@ const MostrarPersonas = async (req, res) => {
     }
 };
 
+const MostrarPersonasActivas = async (req, res) => {
+    try{
+        const personas = await Personas.findAll({
+            where: {
+                activo: true
+            }
+        });
+        res.status(200).json({ personas: personas});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message});
+    }
+};
+
+const toggleActivoPersona = async (req, res) => {
+    const { idpersona } = req.params;
+
+    try {
+        // Buscar el persona por su ID
+        const persona = await Personas.findByPk(idpersona);
+
+        if (!persona) {
+            return res.status(404).json({ message: 'persona no encontrada.' });
+        }
+
+        // Alternar el valor de activo
+        persona.activo = !persona.activo;
+
+        // Guardar el cambio en la base de datos
+        await persona.save();
+
+        res.status(200).json({ message: 'Estado de la persona actualizado con éxito.', persona });
+    } catch (error) {
+        console.error('Error en toggleActivoPersona:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
 const crearPersona = async (req, res) => {
     try {
         const { nombre, apellidos, cui, telefono, email, activo } = req.body;
@@ -60,5 +99,5 @@ const eliminarPersona = async (req, res) => {
 };
 
 module.exports = {
-    MostrarPersonas, crearPersona, actualizarPersona, eliminarPersona
+    MostrarPersonas, MostrarPersonasActivas, crearPersona, actualizarPersona, eliminarPersona, toggleActivoPersona
 }
