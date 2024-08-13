@@ -1,9 +1,9 @@
-const { Servicio } = require('../models');
+const { Servicios } = require('../models');
 
 
 const mostrarServicios = async (req, res) => {
     try {
-        const servicios = await Servicio.findAll();
+        const servicios = await Servicios.findAll();
         res.status(200).json({ servicios });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
@@ -13,7 +13,7 @@ const mostrarServicios = async (req, res) => {
 
 const mostrarServiciosActivos = async (req, res) => {
     try {
-        const servicios = await Servicio.findAll({
+        const servicios = await Servicios.findAll({
             where: {
                 activo: true
             }
@@ -30,7 +30,7 @@ const toggleActivoServicio = async (req, res) => {
 
     try {
         // Buscar el servicio por su ID
-        const servicio = await Servicio.findByPk(idservicio);
+        const servicio = await Servicios.findByPk(idservicio);
 
         if (!servicio) {
             return res.status(404).json({ message: 'Servicio no encontrado.' });
@@ -53,7 +53,7 @@ const crearServicio = async (req, res) => {
     try {
         const { idconfiguracion, no_titulo, no_contador, estatus_contador } = req.body;
 
-        const nuevoServicio = await Servicio.create({ idconfiguracion, no_titulo, no_contador, estatus_contador });
+        const nuevoServicio = await Servicios.create({ idconfiguracion, no_titulo, no_contador, estatus_contador });
 
         res.status(201).json({ nuevoServicio });
     } catch (error) {
@@ -67,7 +67,7 @@ const actualizarServicio = async (req, res) => {
     const { idconfiguracion, no_titulo, no_contador, estatus_contador } = req.body;
 
     try {
-        const servicio = await Servicio.findByPk(idservicio);
+        const servicio = await Servicios.findByPk(idservicio);
 
         if (!servicio) {
             return res.status(404).json({ message: 'Servicio no encontrado.' });

@@ -68,7 +68,7 @@ module.exports = (sequelize, DataTypes) => {
     );
 
     Pagos.associate = (models) => {
-        Pagos.belongsTo(models.Servicio, {
+        Pagos.belongsTo(models.Servicios, {
             foreignKey: 'idservicio',
             as: 'servicios'
         });

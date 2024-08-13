@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
 
     //Asociación con tblservicios
     HistorialServicios.associate = (models) => {
-        HistorialServicios.belongsTo(models.Servicio, {
+        HistorialServicios.belongsTo(models.Servicios, {
             foreignKey: 'idservicio',
             as: 'servicios'
         });
