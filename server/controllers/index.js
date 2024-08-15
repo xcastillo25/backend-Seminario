@@ -5,10 +5,13 @@ const roles = require('./roles');
 const lotes = require('./lotes')
 const pagos = require('./pagos');
 const historial_servicios = require('./historial-servicios.js');
+const usuarios = require('./usuarios');
+const login = require('./login');
 const lecturas = require('./lecturas.js');
 
 module.exports = {
-    configuracion, servicios, personas, pagos, historial_servicios, lotes, roles ,lecturas
+    configuracion, servicios, personas, pagos, historial_servicios, 
+    lotes, roles, usuarios, login,lecturas
 }
 
 
