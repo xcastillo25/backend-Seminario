@@ -48,6 +48,7 @@ require('./server/routes/roles')(app);
 require('./server/routes/lotes')(app);
 require('./server/routes/pagos')(app);
 require('./server/routes/historial-servicios')(app);
+require('./server/routes/lecturas')(app);
 require('./server/routes/usuarios')(app);
 require('./server/routes/login')(app);
 
