@@ -51,6 +51,8 @@ require('./server/routes/historial-servicios')(app);
 require('./server/routes/lecturas')(app);
 require('./server/routes/usuarios')(app);
 require('./server/routes/login')(app);
+require('./server/routes/historial-lecturas')(app);
+require('./server/routes/historial')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
