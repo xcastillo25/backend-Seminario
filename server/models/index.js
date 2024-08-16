@@ -49,6 +49,6 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 // Sincronización con la base de datos -crea la base de datos automática
-// db.sequelize.sync();
+db.sequelize.sync();
 
 module.exports = db;
