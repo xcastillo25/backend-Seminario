@@ -1,7 +1,7 @@
 const usuariosController = require('../controllers').usuarios;
 
 module.exports = (app) => {
-    app.get('/api/usuarios/:idempleado', usuariosController.mostrarUsuarios);
+    app.get('/api/usuarios/', usuariosController.mostrarUsuarios);
     app.get('/api/usuarios-activos', usuariosController.mostrarUsuariosActivos);
     app.post('/api/usuarios', usuariosController.crearUsuario);
     app.put('/api/usuarios/:idusuario', usuariosController.actualizarUsuario);
