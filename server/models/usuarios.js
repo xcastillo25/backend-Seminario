@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
                 autoIncrement: true,
                 allowNull: false
             },
-            idpempleado: {
+            idempleado: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
                 references: {
@@ -49,9 +49,9 @@ module.exports = (sequelize, DataTypes) => {
 
      // Asociación con tblconfiguracion
      Usuarios.associate = (models) => {
-        Usuarios.belongsTo(models.Clientes, {
-            foreignKey: 'idcliente',
-            as: 'clientes'
+        Usuarios.belongsTo(models.Empleados, {
+            foreignKey: 'idempleado',
+            as: 'empleados'
         });
 
         Usuarios.belongsTo(models.Roles, {
