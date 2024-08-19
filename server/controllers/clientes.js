@@ -50,6 +50,11 @@ const crearCliente = async (req, res) => {
     try {
         const { nombre, apellidos, cui, telefono, email, activo } = req.body;
 
+        const clienteExistente = await Clientes.findOne({ where: { cui } });
+        if (clienteExistente) {
+            return res.status(400).json({ message: 'El cliente con este CUI ya existe.' });
+        }
+
         const nuevoCliente = await Clientes.create({ nombre, apellidos, cui, telefono, email, activo });
 
         res.status(201).json({ nuevoCliente });
@@ -69,6 +74,11 @@ const actualizarCliente = async (req, res) => {
 
         if (!cliente) {
             return res.status(404).json({ message: 'Cliente no encontrado.' });
+        }
+
+        const clienteExistente = await Clientes.findOne({ where: { cui, idcliente: { [Op.ne]: idcliente } } });
+        if (clienteExistente) {
+            return res.status(400).json({ message: 'Otro cliente con este CUI ya existe.' });
         }
 
         await cliente.update({ nombre, apellidos, cui, telefono, email, activo });

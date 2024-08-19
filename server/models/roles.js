@@ -13,7 +13,8 @@ module.exports = (sequelize, DataTypes) => {
             },
             activo: {
                 type: DataTypes.BOOLEAN,
-                allowNull: true
+                allowNull: true,
+                defaultValue: true
             }
         },
         {

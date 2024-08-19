@@ -1,4 +1,5 @@
 const { Usuarios } = require('../models');
+const { Roles } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 
@@ -30,25 +31,37 @@ const mostrarUsuariosActivos = async (req, res) => {
     }
 }
 
-const mostrarUsuariosempleadol = async (req, res) => {
+const mostrarUsuarioEmpleado = async (req, res) => {
     try {
         const { idempleado } = req.params;
 
         const usuarios = await Usuarios.findAll({
-            where: {
-                idempleado: idempleado
-            }
+            where: { idempleado: idempleado },
+            include: [
+                {
+                    model: Roles,
+                    as: 'roles',
+                    attributes: ['rol'] 
+                }
+            ]
         });
-        res.status(200).send({ Usuarios: usuarios });
-    } catch (error) { 
+
+        res.status(200).send({ usuarios });
+    } catch (error) {
         console.error(error);
         res.status(500).send({ message: 'Error interno del servidor', error: error.message });
     }
-}
+};
+
 
 const crearUsuario = async (req, res) => {
     try {
-        const { usuario, password, activo, idempleado, idrol, } = req.body;
+        const { idempleado, usuario,  password, idrol } = req.body;
+
+        // Verificar que todos los campos están presentes
+        if (!idempleado  || !usuario || !password|| !idrol) {
+            return res.status(400).send({ message: 'Todos los campos son obligatorios.' });
+        }
 
         // Verificar si el empleado ya tiene un usuario
         const existeUsuarioEmpleado = await Usuarios.findOne({
@@ -73,9 +86,9 @@ const crearUsuario = async (req, res) => {
 
         // Crear el nuevo usuario asociado al empleado
         const nuevoUsuario = await Usuarios.create({
+            idempleado: idempleado,
             usuario: usuario,
             password: hashedPassword,
-            idempleado: idempleado,
             idrol: idrol
         });
 
@@ -85,6 +98,7 @@ const crearUsuario = async (req, res) => {
         res.status(500).send({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
 
 const actualizarUsuario = async (req, res) => {
     const { idusuario } = req.params;
@@ -180,5 +194,5 @@ const resetPassword = async (req, res) => {
 module.exports = {
     mostrarUsuarios, mostrarUsuariosActivos,
     crearUsuario, actualizarUsuario, eliminarUsuario,
-    cambiarEstadoUsuario, resetPassword
+    cambiarEstadoUsuario, resetPassword, mostrarUsuarioEmpleado
 };

@@ -50,6 +50,11 @@ const crearEmpleado = async (req, res) => {
     try {
         const { nombre, apellidos, cui, telefono, email, activo } = req.body;
 
+        const empleadoExistente = await Empleados.findOne({ where: { cui } });
+        if (empleadoExistente) {
+            return res.status(400).json({ message: 'El empleado con este CUI ya existe.' });
+        }
+
         const nuevaempleado = await Empleados.create({ nombre, apellidos, cui, telefono, email, activo });
 
         res.status(201).json({ nuevaempleado });
@@ -69,6 +74,11 @@ const actualizarEmpleado = async (req, res) => {
 
         if (!empleado) {
             return res.status(404).json({ message: 'Empleado no encontrado.' });
+        }
+
+        const empleadoExistente = await Empleados.findOne({ where: { cui } });
+        if (empleadoExistente) {
+            return res.status(400).json({ message: 'El empleado con este CUI ya existe.' });
         }
 
         await empleado.update({ nombre, apellidos, cui, telefono, email, activo });
