@@ -17,8 +17,7 @@ app.use((err, req, res, next) => {
 
 // Configurar CORS
 const allowedOrigins = [
-    //'https://geoproyectossa.netlify.app',
-    'http://localhost:4200'
+    'http://localhost:3000'
 ];
 
 app.use(cors({
@@ -29,21 +28,18 @@ app.use(cors({
             callback(new Error('No permitido por CORS'));
         }
     },
-    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Authorization', 'X-API-KEY', 'Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Access-Control-Allow-Request-Method']
 }));
 
 // ESPACIO PARA LAS SOLICITUDES
 app.get('/', (req, res) => {
-
-    res.status(200).send({ message: 'Bienvenido a Proyecto Lomas De Salamá' });
-
+    res.status(200).send({ message: 'Bienvenido a Geoproyectos' });
 });
-//
 
 require('./server/routes/configuracion')(app);
 require('./server/routes/servicios')(app);
-require('./server/routes/personas')(app);
+require('./server/routes/clientes')(app);
 require('./server/routes/roles')(app);
 require('./server/routes/lotes')(app);
 require('./server/routes/pagos')(app);
@@ -53,13 +49,14 @@ require('./server/routes/usuarios')(app);
 require('./server/routes/login')(app);
 require('./server/routes/historial-lecturas')(app);
 require('./server/routes/historial')(app);
+require('./server/routes/empleados')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
 });
 
 app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
     res.send();
 });
 

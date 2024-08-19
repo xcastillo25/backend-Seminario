@@ -18,12 +18,12 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.INTEGER,
             allowNull: false
         },
-        idpersona: {
+        idcliente: {
             type: Datatypes.INTEGER,
             allowNull: false,
             references: {
-                model: 'tblpersonas',
-                key: 'idpersona'
+                model: 'tblclientes',
+                key: 'idcliente'
             }
         },
         idservicio: {
@@ -51,9 +51,9 @@ module.exports = (sequelize, Datatypes) => {
             as: 'servicios',
         });
 
-        Lotes.belongsTo(models.Personas, {
-            foreignKey: 'idpersona',
-            as: 'personas',
+        Lotes.belongsTo(models.Clientes, {
+            foreignKey: 'idcliente',
+            as: 'clientes',
         });
 
     }

@@ -30,9 +30,9 @@ const mostrarUsuariosActivos = async (req, res) => {
     }
 }
 
-const mostrarUsuariosPersonal = async (req, res) => {
+const mostrarUsuariosempleadol = async (req, res) => {
     try {
-        const { idpersona } = req.params;
+        const { idempleado } = req.params;
 
         const usuarios = await Usuarios.findAll({
             where: {
@@ -48,15 +48,15 @@ const mostrarUsuariosPersonal = async (req, res) => {
 
 const crearUsuario = async (req, res) => {
     try {
-        const { usuario, password, activo, idpersona, idrol, } = req.body;
+        const { usuario, password, activo, idempleado, idrol, } = req.body;
 
         // Verificar si el empleado ya tiene un usuario
         const existeUsuarioEmpleado = await Usuarios.findOne({
-            where: { idpersona: idpersona }
+            where: { idempleado: idempleado }
         });
 
         if (existeUsuarioEmpleado) {
-            return res.status(400).send({ message: 'Esta persona ya cuenta con un usuario.' });
+            return res.status(400).send({ message: 'Este empleado ya cuenta con un usuario.' });
         }
 
         // Verificar si el nombre de usuario ya está en uso
@@ -75,7 +75,7 @@ const crearUsuario = async (req, res) => {
         const nuevoUsuario = await Usuarios.create({
             usuario: usuario,
             password: hashedPassword,
-            idpersona: idpersona,
+            idempleado: idempleado,
             idrol: idrol
         });
 
