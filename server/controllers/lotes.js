@@ -47,9 +47,9 @@ const toggleActivoLote = async (req, res) => {
 
 const crearLote = async (req, res) => {
     try{
-        const { manzana, lote, idpersona, idservicio} = req.body;
+        const { manzana, lote, idcliente, idservicio} = req.body;
 
-        const nuevoLote = await Lotes.create({manzana,lote, idpersona, idservicio });
+        const nuevoLote = await Lotes.create({manzana,lote, idcliente, idservicio });
         
         res.status(201).json ({ nuevoLote });
     }catch (error){
@@ -60,7 +60,7 @@ const crearLote = async (req, res) => {
 
 const actualizarLote = async (req, res) => {
     const { idlote } = req.params;
-    const { manzana, lote: numeroLote, idpersona, idservicio } = req.body;
+    const { manzana, lote: numeroLote, idcliente, idservicio } = req.body;
 
     try {
         const loteEncontrado = await Lotes.findByPk(idlote);
@@ -69,7 +69,7 @@ const actualizarLote = async (req, res) => {
             return res.status(404).json({ message: 'Lote no encontrado.' });
         }
 
-        await loteEncontrado.update({ manzana, lote: numeroLote, idpersona, idservicio });
+        await loteEncontrado.update({ manzana, lote: numeroLote, idcliente, idservicio });
 
         res.status(200).json({ message: 'Lote actualizado con éxito.' });
     } catch (error) {

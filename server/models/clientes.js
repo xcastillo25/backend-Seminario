@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
-    const Personas = sequelize.define(
-        'Personas',{
-            idpersona: {
+    const Clientes = sequelize.define(
+        'Clientes',{
+            idcliente: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
@@ -35,9 +35,9 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             timestamps: false,
-            tableName: 'tblpersonas'
+            tableName: 'tblclientes'
         }
     );
 
-    return Personas;
+    return Clientes;
 };

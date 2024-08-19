@@ -1,6 +1,6 @@
 const configuracion = require('./configuracion');
 const servicios = require('./servicios');
-const personas = require('./personas');
+const clientes = require('./clientes');
 const roles = require('./roles');
 const lotes = require('./lotes')
 const pagos = require('./pagos');
@@ -10,10 +10,12 @@ const login = require('./login');
 const lecturas = require('./lecturas.js');
 const historial_lecturas = require('./historial-lecturas.js');
 const historial = require('./historial.js');
+const empleados = require('./empleados.js');
 
 module.exports = {
-    configuracion, servicios, personas, pagos, historial_servicios, 
-    lotes, roles, usuarios, login,lecturas, historial_lecturas, historial
+    configuracion, servicios, clientes, pagos, historial_servicios, 
+    lotes, roles, usuarios, login,lecturas, historial_lecturas, historial,
+    empleados
 }
 
 
