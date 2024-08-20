@@ -7,6 +7,6 @@ module.exports = (app) => {
     app.post('/api/usuarios', usuariosController.crearUsuario);
     app.put('/api/usuarios/:idusuario', usuariosController.actualizarUsuario);
     app.delete('/api/usuarios/:idusuario', usuariosController.eliminarUsuario);
-    app.put('/api/estado-usuarios/:idusuario', usuariosController.cambiarEstadoUsuario);
+    app.patch('/api/usuarios/:idusuario/toggle', usuariosController.cambiarEstadoUsuario);
     app.put('/api/reset-password/:idusuario', usuariosController.resetPassword);
 };
