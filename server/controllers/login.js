@@ -1,4 +1,4 @@
-const { tblempleados, tblusuarios } = require('../models');
+const { Usuarios, Empleados, Roles } = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
@@ -8,8 +8,20 @@ const login = async (req, res) => {
         const { usuario, password } = req.body;
 
         // Buscar el usuario por nombre de usuario
-        const usuarioEncontrado = await tblusuarios.findOne({
-            where: { usuario: usuario }
+        const usuarioEncontrado = await Usuarios.findOne({
+            where: { usuario: usuario },
+            include: [
+                {
+                    model: Empleados,
+                    as: 'empleados',
+                    attributes: ['nombre', 'apellidos']
+                },
+                {
+                    model: Roles,
+                    as: 'roles',
+                    attributes: ['rol'] // Asegúrate de que 'rol' es el nombre correcto del atributo en tu tabla de roles
+                }
+            ]
         });
 
         if (!usuarioEncontrado) {
@@ -18,13 +30,6 @@ const login = async (req, res) => {
 
         if (!usuarioEncontrado.activo) {
             throw new Error('El usuario no se encuentra activo.');
-        }
-
-        // Obtener el empleado asociado al usuario
-        const empleado = await tblempleados.findByPk(usuarioEncontrado.idempleado);
-
-        if (!empleado) {
-            throw new Error('No se encontró un empleado asociado al usuario.');
         }
 
         // Verificar la contraseña
@@ -36,18 +41,19 @@ const login = async (req, res) => {
 
         // Generar el token de autenticación
         const token = jwt.sign(
-            { id: usuarioEncontrado.idempleado },
+            { id: usuarioEncontrado.idusuario },
             config.token_secret,
-            { expiresIn: '1h' } // Expira en 1 hora
+            { expiresIn: '1h' }
         );
 
-        // Enviar la respuesta con el token y la información del empleado
+        // Enviar la respuesta con el token, la información del empleado y el rol
         res.status(200).send({
             token,
-            idempleado: empleado.idempleado,
-            nombre: empleado.nombre,
-            apellidos: empleado.apellidos,
-            foto: empleado.foto
+            idusuario: usuarioEncontrado.idusuario,
+            nombre: usuarioEncontrado.empleados.nombre,
+            apellidos: usuarioEncontrado.empleados.apellidos,
+            foto: usuarioEncontrado.empleados.foto,
+            rol: usuarioEncontrado.roles.rol // Aquí se incluye el rol
         });
     } catch (error) {
         res.status(500).send({ error: error.message });
