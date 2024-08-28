@@ -1,14 +1,24 @@
 const { Usuarios } = require('../models');
 const { Roles } = require('../models');
+const { Empleados } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 
 const mostrarUsuarios = async (req, res) => {
     try {
         const usuarios = await Usuarios.findAll({
-            where: {
-                activo: true
-            }
+            include: [
+                {
+                    model: Roles,
+                    as: 'roles',
+                    attributes: ['rol'] 
+                },
+                {
+                    model: Empleados,
+                    as: 'empleados',
+                    attributes: ['nombre', 'apellidos', 'email', 'telefono', 'cui']
+                }
+            ]
         });
         res.status(200).send({ Usuarios: usuarios });
     } catch (error) { 
@@ -52,6 +62,7 @@ const mostrarUsuarioEmpleado = async (req, res) => {
         res.status(500).send({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
 
 
 const crearUsuario = async (req, res) => {
