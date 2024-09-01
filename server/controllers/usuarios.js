@@ -411,8 +411,101 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const resetPasswordPorIdUsuario = async (req, res) => {
+    try {
+        const { idusuario } = req.body;
+
+        // Buscar el usuario por ID de usuario
+        const usuario = await Usuarios.findOne({
+            where: { idusuario: idusuario },
+            include: [{
+                model: Empleados,
+                as: 'empleados' // Usa el alias definido en la asociación
+            }]
+        });
+
+        // Verificar si el usuario existe y tiene un empleado asociado
+        if (!usuario || !usuario.empleados) {
+            return res.status(404).send({ message: 'No se encontró ningún usuario con ese ID.' });
+        }
+
+        // Generar una nueva contraseña aleatoria
+        const nuevaContrasena = generarPasswordAleatoria();
+
+        // Encriptar la nueva contraseña
+        const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
+
+        // Actualizar la contraseña del usuario
+        usuario.password = hashedPassword;
+        await usuario.save();
+
+        // Configurar el transporte de nodemailer usando las credenciales del archivo .env
+        const transporter = nodemailer.createTransport({
+            service: 'Outlook',
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.PASSWORD
+            }
+        });
+
+        // Definir el contenido del correo electrónico
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: usuario.empleados.email, // Se envía el correo al email del empleado asociado
+            subject: 'Restablecimiento de Contraseña',
+            html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #333; text-align: center;">Restablecimiento de Contraseña</h2>
+                <p style="font-size: 16px; color: #555;">
+                    Hola <strong>${usuario.usuario}</strong>,
+                </p>
+                <p style="font-size: 16px; color: #555;">
+                    Tu contraseña ha sido restablecida exitosamente. Aquí tienes tu nueva contraseña:
+                </p>
+                <div style="margin: 20px 0; padding: 15px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 5px;">
+                    <p style="font-size: 16px; color: #333;"><strong>Usuario:</strong> ${usuario.usuario}</p>
+                    <p style="font-size: 16px; color: #333;"><strong>Contraseña:</strong> ${nuevaContrasena}</p>
+                </div>
+                <p style="font-size: 16px; color: #555;">
+                    Por favor, recuerda cambiar esta contraseña después de iniciar sesión.
+                </p>
+                <p style="font-size: 16px; color: #555;">
+                    Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.
+                </p>
+                <p style="font-size: 16px; color: #555;">
+                    Saludos cordiales,
+                </p>
+                <p style="font-size: 16px; color: #555;">
+                    El equipo de Paseo Las Lomas Salamá
+                </p>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 14px; color: #aaa;">
+                    <p>&copy; ${new Date().getFullYear()} Paseo Las Lomas Salamá. Todos los derechos reservados.</p>
+                </div>
+            </div>
+            `
+        };
+
+        // Enviar el correo electrónico
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error al enviar el correo electrónico:', error);
+                return res.status(500).send({ message: 'Error al enviar el correo electrónico.' });
+            } else {
+                console.log('Correo electrónico enviado:', info.response);
+            }
+        });
+
+        res.status(200).send({ message: 'Contraseña restablecida con éxito y enviada por correo.', username: usuario.usuario, nuevaContrasena: nuevaContrasena });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
 module.exports = {
     mostrarUsuarios, mostrarUsuariosActivos,
     crearUsuario, actualizarUsuario, eliminarUsuario,
-    cambiarEstadoUsuario, resetPassword, mostrarUsuarioEmpleado
+    cambiarEstadoUsuario, resetPassword, mostrarUsuarioEmpleado,
+    resetPasswordPorIdUsuario
 };
