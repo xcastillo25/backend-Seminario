@@ -45,15 +45,28 @@ const toggleActivoLote = async (req, res) => {
 };
 
 const crearLote = async (req, res) => {
-    try{
-        const { manzana, lote, observaciones} = req.body;
+    try {
+        const { manzana, lote, observaciones } = req.body;
 
-        const nuevoLote = await Lotes.create({manzana,lote, observaciones });
-        
-        res.status(201).json ({ nuevoLote });
-    }catch (error){
-        console.error('Error en crearLote:' ,error);
-        res.status(400).json({message: 'Error al crear el Lote', error: error.message});
+        // Verificar si ya existe un lote con la misma manzana y número de lote
+        const loteExistente = await Lotes.findOne({
+            where: {
+                manzana: manzana,
+                lote: lote
+            }
+        });
+
+        if (loteExistente) {
+            return res.status(400).json({ message: 'Ya existe un lote con la misma manzana y número de lote.' });
+        }
+
+        // Crear el nuevo lote si no hay duplicados
+        const nuevoLote = await Lotes.create({ manzana, lote, observaciones });
+
+        res.status(201).json({ nuevoLote });
+    } catch (error) {
+        console.error('Error en crearLote:', error);
+        res.status(400).json({ message: 'Error al crear el Lote', error: error.message });
     }
 };
 

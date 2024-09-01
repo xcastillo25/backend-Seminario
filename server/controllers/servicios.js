@@ -14,7 +14,7 @@ const mostrarServicios = async (req, res) => {
                     model: Lotes,
                     as: 'lotes',
                     attributes: [
-                        [Sequelize.literal("CONCAT(manzana, '-', lote)"), 'ubicacion']
+                        [Sequelize.literal("CONCAT(manzana, lote)"), 'ubicacion']
                     ]
                 }
             ]
@@ -42,7 +42,7 @@ const mostrarServiciosActivos = async (req, res) => {
                     model: Lotes,
                     as: 'clientes',
                     attributes: [
-                        [Sequelize.literal("CONCAT(manzana, '-', lote)"), 'ubicacion']
+                        [Sequelize.literal("CONCAT(manzana, lote)"), 'ubicacion']
                     ]
                 }
             ]
@@ -82,12 +82,22 @@ const crearServicio = async (req, res) => {
     try {
         const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
 
+        // Verificar si ya existe un servicio asociado al mismo lote
+        const servicioExistente = await Servicios.findOne({
+            where: { idlote: idlote }
+        });
+
+        if (servicioExistente) {
+            return res.status(400).json({ message: 'Ya existe un servicio asociado a este lote.' });
+        }
+
+        // Crear el nuevo servicio
         const nuevoServicio = await Servicios.create({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
 
         res.status(201).json({ nuevoServicio });
     } catch (error) {
         console.error('Error en crear un Servicio:', error);
-        res.status(400).json({ message: 'Error interno del servidor', error: error.message });
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
 
