@@ -17,7 +17,8 @@ app.use((err, req, res, next) => {
 
 // Configurar CORS
 const allowedOrigins = [
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'https://frontend-seminario.onrender.com'
 ];
 
 app.use(cors({
