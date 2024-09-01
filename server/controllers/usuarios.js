@@ -2,7 +2,7 @@ const { Usuarios } = require('../models');
 const { Roles } = require('../models');
 const { Empleados } = require('../models');
 const { Op } = require('sequelize');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
