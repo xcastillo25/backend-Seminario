@@ -16,6 +16,22 @@ module.exports = (sequelize, DataTypes) => {
                     key: 'idconfiguracion'
                 }
             },
+            idlote: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                references: {
+                    model: 'tbllotes', 
+                    key: 'idlote'
+                }
+            },
+            idcliente: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                references: {
+                    model: 'tblclientes', 
+                    key: 'idcliente'
+                }
+            },
             no_titulo: {
                 type: DataTypes.STRING(50),
                 allowNull: true
@@ -35,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
             }
         }, 
         {
-            timestamps: false,
+            timestamps: true,
             tableName: 'tblservicios'
         }
     );
@@ -45,6 +61,14 @@ module.exports = (sequelize, DataTypes) => {
         Servicios.belongsTo(models.Configuracion, {
             foreignKey: 'idconfiguracion',
             as: 'configuracion'
+        });
+        Servicios.belongsTo(models.Lotes, {
+            foreignKey: 'idlote',
+            as: 'lotes'
+        });
+        Servicios.belongsTo(models.Clientes, {
+            foreignKey: 'idcliente',
+            as: 'clientes'
         });
     };
 

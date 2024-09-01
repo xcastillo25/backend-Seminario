@@ -10,12 +10,12 @@ module.exports = (sequelize, Datatypes) => {
             autoIncrement: true,
             allowNull: false
         },
-        idlote: {
+        idservicio: {
             type: Datatypes.INTEGER,
             allowNull: false,
             references:{
-                model:'tbllotes',
-                key:'idlote'
+                model:'tblservicios',
+                key:'idservicio'
             }
         },
         lectura: {
@@ -45,14 +45,14 @@ module.exports = (sequelize, Datatypes) => {
         }
     },
         {
-            timestamps: false,
+            timestamps: true,
             tableName: 'tbllecturas'
         }
     );
     Lecturas.associate = (models) => {
-        Lecturas.belongsTo(models.Lotes, {
-            foreignKey: 'idlote',
-            as: 'lotes',
+        Lecturas.belongsTo(models.Servicios, {
+            foreignKey: 'idservicios',
+            as: 'servicios',
         });
 
         Lecturas.belongsTo(models.Usuarios, {

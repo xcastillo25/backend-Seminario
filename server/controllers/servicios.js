@@ -1,9 +1,24 @@
-const { Servicios } = require('../models');
-
+const { Servicios, Clientes, Lotes } = require('../models');
+const { Sequelize } = require('sequelize');
 
 const mostrarServicios = async (req, res) => {
     try {
-        const servicios = await Servicios.findAll();
+        const servicios = await Servicios.findAll({
+            include: [
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre', 'apellidos', 'cui', 'nit', 'telefono']
+                },
+                {
+                    model: Lotes,
+                    as: 'lotes',
+                    attributes: [
+                        [Sequelize.literal("CONCAT(manzana, '-', lote)"), 'ubicacion']
+                    ]
+                }
+            ]
+        });
         res.status(200).json({ servicios });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
@@ -16,7 +31,21 @@ const mostrarServiciosActivos = async (req, res) => {
         const servicios = await Servicios.findAll({
             where: {
                 activo: true
-            }
+            },
+            include: [
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre', 'apellidos', 'cui', 'nit', 'telefono']
+                },
+                {
+                    model: Lotes,
+                    as: 'clientes',
+                    attributes: [
+                        [Sequelize.literal("CONCAT(manzana, '-', lote)"), 'ubicacion']
+                    ]
+                }
+            ]
         });
         res.status(200).json({ servicios });
     } catch (error) {
@@ -51,9 +80,9 @@ const toggleActivoServicio = async (req, res) => {
 
 const crearServicio = async (req, res) => {
     try {
-        const { idconfiguracion, no_titulo, no_contador, estatus_contador } = req.body;
+        const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
 
-        const nuevoServicio = await Servicios.create({ idconfiguracion, no_titulo, no_contador, estatus_contador });
+        const nuevoServicio = await Servicios.create({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
 
         res.status(201).json({ nuevoServicio });
     } catch (error) {
@@ -64,7 +93,7 @@ const crearServicio = async (req, res) => {
 
 const actualizarServicio = async (req, res) => {
     const { idservicio } = req.params;
-    const { idconfiguracion, no_titulo, no_contador, estatus_contador } = req.body;
+    const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
 
     try {
         const servicio = await Servicios.findByPk(idservicio);
@@ -73,7 +102,7 @@ const actualizarServicio = async (req, res) => {
             return res.status(404).json({ message: 'Servicio no encontrado.' });
         }
 
-        await servicio.update({ idconfiguracion, no_titulo, no_contador, estatus_contador });
+        await servicio.update({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
 
         res.status(200).json({ message: 'Servicio actualizado con éxito.' });
     } catch (error) {

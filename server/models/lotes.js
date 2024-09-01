@@ -1,6 +1,3 @@
-const { Model } = require("sequelize")
-const { FOREIGNKEYS } = require("sequelize/lib/query-types")
-
 module.exports = (sequelize, Datatypes) => {
     const Lotes = sequelize.define(
         "Lotes", {
@@ -18,44 +15,20 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.INTEGER,
             allowNull: false
         },
-        idcliente: {
-            type: Datatypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'tblclientes',
-                key: 'idcliente'
-            }
-        },
-        idservicio: {
-            type: Datatypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'tblservicios',
-                key: 'idservicio'
-            }
+        observaciones: {
+            type: Datatypes.STRING(255),
+            allowNull: true
         },
         activo: {
             type: Datatypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
-        }
+        },
     },
         {
-            timestamps: false,
+            timestamps: true,
             tableName: 'tbllotes'
         }
     );
-    Lotes.associate = (models) => {
-        Lotes.belongsTo(models.Servicios, {
-            foreignKey: 'idservicio',
-            as: 'servicios',
-        });
-
-        Lotes.belongsTo(models.Clientes, {
-            foreignKey: 'idcliente',
-            as: 'clientes',
-        });
-
-    }
     return Lotes;
 }

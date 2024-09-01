@@ -50,9 +50,9 @@ const toggleActivoConfiguracion = async (req, res) => {
 
 const crearConfiguracion = async (req, res) => {
     try {
-        const { servicio, cuota, mora, empresa, direccion, exceso, porcentaje_exceso, limite, cuota_instalacion, cuota_reconexion } = req.body;
+        const { servicio, cuota, porcentaje_mora, empresa, direccion, porcentaje_exceso, limite, cuota_instalacion, cuota_conexion } = req.body;
 
-        const nuevaConfiguracion = await Configuracion.create({ servicio, cuota, mora, empresa, direccion, exceso, porcentaje_exceso, limite, cuota_instalacion, cuota_reconexion });
+        const nuevaConfiguracion = await Configuracion.create({ servicio, cuota, porcentaje_mora, empresa, direccion, porcentaje_exceso, limite, cuota_instalacion, cuota_conexion });
 
         res.status(201).json({ nuevaConfiguracion });
     } catch (error) {
@@ -63,7 +63,7 @@ const crearConfiguracion = async (req, res) => {
 
 const actualizarConfiguracion = async (req, res) => {
     const { idconfiguracion } = req.params;
-    const { servicio, cuota, mora, empresa, direccion, exceso, porcentaje_exceso, limite, cuota_instalacion, cuota_reconexion } = req.body;
+    const { servicio, cuota, porcentaje_mora, empresa, direccion, porcentaje_exceso, limite, cuota_instalacion, cuota_conexion } = req.body;
 
     try {
         const configuracion = await Configuracion.findByPk(idconfiguracion);
@@ -72,7 +72,7 @@ const actualizarConfiguracion = async (req, res) => {
             return res.status(404).json({ message: 'Configuración no encontrada.' });
         }
 
-        await configuracion.update({ servicio, cuota, mora, empresa, direccion, exceso, porcentaje_exceso, limite, cuota_instalacion, cuota_reconexion });
+        await configuracion.update({ servicio, cuota, porcentaje_mora, empresa, direccion, porcentaje_exceso, limite, cuota_instalacion, cuota_conexion });
 
         res.status(200).json({ message: 'Configuración actualizada con éxito.' });
     } catch (error) {

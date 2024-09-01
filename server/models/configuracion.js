@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DECIMAL(18, 2),
                 allowNull: false
             },
-            mora: {
+            porcentaje_mora: {
                 type: DataTypes.DECIMAL(18, 2),
                 allowNull: false
             },
@@ -26,10 +26,6 @@ module.exports = (sequelize, DataTypes) => {
             },
             direccion: {
                 type: DataTypes.STRING(100),
-                allowNull: false
-            },
-            exceso: {
-                type: DataTypes.DECIMAL(18, 2),
                 allowNull: false
             },
             porcentaje_exceso: {
@@ -44,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DECIMAL(18, 2),
                 allowNull: false
             },
-            cuota_reconexion: {
+            cuota_conexion: {
                 type: DataTypes.DECIMAL(18, 2),
                 allowNull: false
             },
@@ -55,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         {
-            timestamps: false,
+            timestamps: true,
             tableName: 'tblconfiguracion'
         }
     );
