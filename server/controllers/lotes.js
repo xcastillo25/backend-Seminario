@@ -1,6 +1,4 @@
-const { where } = require('sequelize');
 const { Lotes } = require('../models');
-const lotes = require('../models/lotes');
 
 const mostrarLotes = async (req, res) => {
     try {
@@ -11,6 +9,7 @@ const mostrarLotes = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
 
 const mostrarLotesActivos = async (req, res) => {
     try {
@@ -47,9 +46,9 @@ const toggleActivoLote = async (req, res) => {
 
 const crearLote = async (req, res) => {
     try{
-        const { manzana, lote, idcliente, idservicio} = req.body;
+        const { manzana, lote, observaciones} = req.body;
 
-        const nuevoLote = await Lotes.create({manzana,lote, idcliente, idservicio });
+        const nuevoLote = await Lotes.create({manzana,lote, observaciones });
         
         res.status(201).json ({ nuevoLote });
     }catch (error){
@@ -60,7 +59,7 @@ const crearLote = async (req, res) => {
 
 const actualizarLote = async (req, res) => {
     const { idlote } = req.params;
-    const { manzana, lote: numeroLote, idcliente, idservicio } = req.body;
+    const { manzana, lote: numeroLote, observaciones } = req.body;
 
     try {
         const loteEncontrado = await Lotes.findByPk(idlote);
@@ -69,7 +68,7 @@ const actualizarLote = async (req, res) => {
             return res.status(404).json({ message: 'Lote no encontrado.' });
         }
 
-        await loteEncontrado.update({ manzana, lote: numeroLote, idcliente, idservicio });
+        await loteEncontrado.update({ manzana, lote: numeroLote, observaciones  });
 
         res.status(200).json({ message: 'Lote actualizado con éxito.' });
     } catch (error) {
