@@ -1,10 +1,29 @@
+const { Model } = require('sequelize');
 const { Servicios } = require('../models');
+const { Configuracion } = require('../models');
 
+const mostrarServicios1 = async (req, res) => {
+    try {
+        const servicios = await Servicios.findAll();
+        res.status(200).json({ Servicios:servicios });
+    } catch (error) {
+        console.error('Error en mostrar los Servicios:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
 
 const mostrarServicios = async (req, res) => {
     try {
-        const servicios = await Servicios.findAll();
-        res.status(200).json({ servicios });
+        const servicios = await Servicios.findAll({
+            include:[
+                {
+                    model: Configuracion,
+                    as: 'configuracion',
+                    attributes: ['servicio']
+                }
+            ]
+        });
+        res.status(200).json({ Servicios:servicios });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
