@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
             manzana: {
                 type: DataTypes.STRING,
                 allowNull: false
+            },
+            ubicacion: {
+                type: DataTypes.STRING,
+                allowNull: false
             }
         }, 
         {
