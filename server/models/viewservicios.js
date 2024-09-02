@@ -41,8 +41,14 @@ module.exports = (sequelize, DataTypes) => {
         }, 
         {
             timestamps: false,
-            tableName: 'view_services',
-            freezeTableName: true
+            tableName: 'view_servicios',
+            freezeTableName: true,
+            // Evita que Sequelize intente crear o alterar la vista
+            createdAt: false,
+            updatedAt: false,
+            // Desactiva la sincronización con la base de datos
+            sync: { force: false },
+            underscored: true
         }
     );
 
