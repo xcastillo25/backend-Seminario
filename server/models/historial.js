@@ -29,10 +29,10 @@ module.exports = (Sequelize, DataTypes) => {
             defaultValue: true
         },
     },
-        {
-            timestamps: false,
-            tableName: 'tblhistorial'
-        }
+    {
+        timestamps: true,
+        tableName: 'tblhistorial'
+    }
     );
 
     Historial.associate = (models) => {

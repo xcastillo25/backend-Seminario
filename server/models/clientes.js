@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING(13),
                 allowNull: false
             },
+            nit : {
+                type: DataTypes.STRING(20),
+                allowNull: false
+            },
             telefono: {
                 type: DataTypes.STRING(8),
                 allowNull: false
@@ -34,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         {
-            timestamps: false,
+            timestamps: true,
             tableName: 'tblclientes'
         }
     );

@@ -1,16 +1,23 @@
-const { where } = require('sequelize');
 const { Lotes } = require('../models');
-const lotes = require('../models/lotes');
+const { Sequelize } = require('sequelize');
 
 const mostrarLotes = async (req, res) => {
     try {
-        const lotes = await Lotes.findAll();
-        res.status(200).json({ lotes });
+        const lotes = await Lotes.findAll({});
+        
+        const lotesConUbicacion = lotes.map(lote => {
+            return {
+                ...lote.toJSON(), // Convierte el objeto Sequelize a un objeto JS puro
+                ubicacion: `${lote.manzana}${lote.lote}` // Concatenación de atributos
+            };
+        });
+        res.status(200).json({ lotes:lotesConUbicacion });
     } catch (error) {
         console.error('Error en mostrarLotes:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
 
 const mostrarLotesActivos = async (req, res) => {
     try {
@@ -46,21 +53,34 @@ const toggleActivoLote = async (req, res) => {
 };
 
 const crearLote = async (req, res) => {
-    try{
-        const { manzana, lote, idcliente, idservicio} = req.body;
+    try {
+        const { manzana, lote, observaciones } = req.body;
 
-        const nuevoLote = await Lotes.create({manzana,lote, idcliente, idservicio });
-        
-        res.status(201).json ({ nuevoLote });
-    }catch (error){
-        console.error('Error en crearLote:' ,error);
-        res.status(400).json({message: 'Error al crear el Lote', error: error.message});
+        // Verificar si ya existe un lote con la misma manzana y número de lote
+        const loteExistente = await Lotes.findOne({
+            where: {
+                manzana: manzana,
+                lote: lote
+            }
+        });
+
+        if (loteExistente) {
+            return res.status(400).json({ message: 'Ya existe un lote con la misma manzana y número de lote.' });
+        }
+
+        // Crear el nuevo lote si no hay duplicados
+        const nuevoLote = await Lotes.create({ manzana, lote, observaciones });
+
+        res.status(201).json({ nuevoLote });
+    } catch (error) {
+        console.error('Error en crearLote:', error);
+        res.status(400).json({ message: 'Error al crear el Lote', error: error.message });
     }
 };
 
 const actualizarLote = async (req, res) => {
     const { idlote } = req.params;
-    const { manzana, lote: numeroLote, idcliente, idservicio } = req.body;
+    const { manzana, lote: numeroLote, observaciones } = req.body;
 
     try {
         const loteEncontrado = await Lotes.findByPk(idlote);
@@ -69,7 +89,7 @@ const actualizarLote = async (req, res) => {
             return res.status(404).json({ message: 'Lote no encontrado.' });
         }
 
-        await loteEncontrado.update({ manzana, lote: numeroLote, idcliente, idservicio });
+        await loteEncontrado.update({ manzana, lote: numeroLote, observaciones  });
 
         res.status(200).json({ message: 'Lote actualizado con éxito.' });
     } catch (error) {

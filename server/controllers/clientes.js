@@ -49,14 +49,14 @@ const toggleActivoCliente = async (req, res) => {
 
 const crearCliente = async (req, res) => {
     try {
-        const { nombre, apellidos, cui, telefono, email, activo } = req.body;
+        const { nombre, apellidos, cui, nit, telefono, email, activo } = req.body;
 
         const clienteExistente = await Clientes.findOne({ where: { cui } });
         if (clienteExistente) {
             return res.status(400).json({ message: 'El cliente con este CUI ya existe.' });
         }
 
-        const nuevoCliente = await Clientes.create({ nombre, apellidos, cui, telefono, email, activo });
+        const nuevoCliente = await Clientes.create({ nombre, apellidos, cui, nit, telefono, email, activo });
 
         res.status(201).json({ nuevoCliente });
     } catch (error) {
@@ -68,7 +68,7 @@ const crearCliente = async (req, res) => {
 
 const actualizarCliente = async (req, res) => {
     const { idcliente } = req.params;
-    const { nombre, apellidos, cui, telefono, email, activo } = req.body;
+    const { nombre, apellidos, cui, nit, telefono, email, activo } = req.body;
 
     try{
         const cliente = await Clientes.findByPk(idcliente);
@@ -82,7 +82,7 @@ const actualizarCliente = async (req, res) => {
             return res.status(400).json({ message: 'Otro cliente con este CUI ya existe.' });
         }
 
-        await cliente.update({ nombre, apellidos, cui, telefono, email, activo });
+        await cliente.update({ nombre, apellidos, cui, nit, telefono, email, activo });
 
         res.status(200).json( { message: 'Cliente actualizado con éxito.' });
     } catch (error) {

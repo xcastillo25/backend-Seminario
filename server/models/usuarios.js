@@ -1,6 +1,3 @@
-const { Model } = require("sequelize")
-const { FOREIGNKEYS } = require("sequelize/lib/query-types")
-
 module.exports = (sequelize, DataTypes) => {
     const Usuarios = sequelize.define(
         'Usuarios',
@@ -42,13 +39,13 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         {
-            timestamps: false,
+            timestamps: true,
             tableName: "tblusuarios"
         }
     );
 
-     // Asociación con tblconfiguracion
-     Usuarios.associate = (models) => {
+    // Asociación con Empleados
+    Usuarios.associate = (models) => {
         Usuarios.belongsTo(models.Empleados, {
             foreignKey: 'idempleado',
             as: 'empleados'

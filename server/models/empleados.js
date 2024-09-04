@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const Empleados = sequelize.define(
-        'Empleados',{
+        'Empleados', {
             idempleado: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
@@ -34,10 +34,17 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         {
-            timestamps: false,
+            timestamps: true,
             tableName: 'tblempleados'
         }
     );
+
+    Empleados.associate = (models) => {
+        Empleados.hasMany(models.Usuarios, {
+            foreignKey: 'idempleado',
+            as: 'usuarios'
+        });
+    };
 
     return Empleados;
 };

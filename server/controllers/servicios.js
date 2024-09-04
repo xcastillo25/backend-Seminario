@@ -1,6 +1,5 @@
-const { Model } = require('sequelize');
-const { Servicios } = require('../models');
-const { Configuracion } = require('../models');
+const { Servicios, Clientes, Lotes, Configuracion } = require('../models');
+const { Sequelize } = require('sequelize');
 
 const mostrarServicios1 = async (req, res) => {
     try {
@@ -12,6 +11,7 @@ const mostrarServicios1 = async (req, res) => {
     }
 };
 
+
 const mostrarServicios = async (req, res) => {
     try {
         const servicios = await Servicios.findAll({
@@ -20,10 +20,72 @@ const mostrarServicios = async (req, res) => {
                     model: Configuracion,
                     as: 'configuracion',
                     attributes: ['servicio']
+                },
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre', 'apellidos', 'cui', 'nit', 'telefono']
+                },
+                {
+                    model: Lotes,
+                    as: 'lotes',
+                    attributes: [
+                        [Sequelize.literal("CONCAT(manzana, lote)"), 'ubicacion']
+                    ]
                 }
             ]
         });
         res.status(200).json({ Servicios:servicios });
+    } catch (error) {
+        console.error('Error en mostrar los Servicios:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+const mostrarServiciosAlt = async (req, res) => {
+    try {
+        const servicios = await Servicios.findAll({
+            include: [
+                {
+                    model: Configuracion,
+                    as: 'configuracion',
+                    attributes: ['servicio']
+                },
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre']
+                },
+                {
+                    model: Lotes,
+                    as: 'lotes',
+                    attributes: [
+                        'manzana','lote'
+                    ]
+                }
+            ]
+        });
+
+        // Mapeamos los servicios para modificar la estructura de la respuesta
+        const serviciosModificados = servicios.map(servicio => {
+            return {
+                idservicio: servicio.idservicio,
+                idconfiguracion: servicio.idconfiguracion,
+                idlote: servicio.idlote,
+                idcliente: servicio.idcliente,
+                no_titulo: servicio.no_titulo,
+                no_contador: servicio.no_contador,
+                estatus_contador: servicio.estatus_contador,
+                activo: servicio.activo,
+                createdAt: servicio.createdAt,
+                updatedAt: servicio.updatedAt,
+                servicio: servicio.configuracion.servicio,
+                nombrecliente: servicio.clientes.nombre,
+                loteubicacion: `${servicio.lotes.manzana}${servicio.lotes.lote}`
+            };
+        });
+
+        res.status(200).json({ servicios: serviciosModificados });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
@@ -35,7 +97,21 @@ const mostrarServiciosActivos = async (req, res) => {
         const servicios = await Servicios.findAll({
             where: {
                 activo: true
-            }
+            },
+            include: [
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre', 'apellidos', 'cui', 'nit', 'telefono']
+                },
+                {
+                    model: Lotes,
+                    as: 'clientes',
+                    attributes: [
+                        [Sequelize.literal("CONCAT(manzana, lote)"), 'ubicacion']
+                    ]
+                }
+            ]
         });
         res.status(200).json({ servicios });
     } catch (error) {
@@ -70,20 +146,30 @@ const toggleActivoServicio = async (req, res) => {
 
 const crearServicio = async (req, res) => {
     try {
-        const { idconfiguracion, no_titulo, no_contador, estatus_contador } = req.body;
+        const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
 
-        const nuevoServicio = await Servicios.create({ idconfiguracion, no_titulo, no_contador, estatus_contador });
+        // Verificar si ya existe un servicio asociado al mismo lote
+        const servicioExistente = await Servicios.findOne({
+            where: { idlote: idlote }
+        });
+
+        if (servicioExistente) {
+            return res.status(400).json({ message: 'Ya existe un servicio asociado a este lote.' });
+        }
+
+        // Crear el nuevo servicio
+        const nuevoServicio = await Servicios.create({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
 
         res.status(201).json({ nuevoServicio });
     } catch (error) {
         console.error('Error en crear un Servicio:', error);
-        res.status(400).json({ message: 'Error interno del servidor', error: error.message });
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
 
 const actualizarServicio = async (req, res) => {
     const { idservicio } = req.params;
-    const { idconfiguracion, no_titulo, no_contador, estatus_contador } = req.body;
+    const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
 
     try {
         const servicio = await Servicios.findByPk(idservicio);
@@ -92,7 +178,7 @@ const actualizarServicio = async (req, res) => {
             return res.status(404).json({ message: 'Servicio no encontrado.' });
         }
 
-        await servicio.update({ idconfiguracion, no_titulo, no_contador, estatus_contador });
+        await servicio.update({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
 
         res.status(200).json({ message: 'Servicio actualizado con éxito.' });
     } catch (error) {
@@ -117,6 +203,6 @@ const eliminarServicio = async (req, res) => {
 };
 
 module.exports = {
-    mostrarServicios, mostrarServiciosActivos, crearServicio, actualizarServicio, eliminarServicio,
+    mostrarServicios, mostrarServiciosAlt , mostrarServiciosActivos, crearServicio, actualizarServicio, eliminarServicio,
     toggleActivoServicio
 };
