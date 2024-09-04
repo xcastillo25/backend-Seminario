@@ -77,8 +77,6 @@ const mostrarUsuarioEmpleado = async (req, res) => {
     }
 };
 
-
-
 const crearUsuario = async (req, res) => {
     try {
         const { idempleado, usuario, password, idrol, email } = req.body;
@@ -179,7 +177,6 @@ const crearUsuario = async (req, res) => {
         res.status(500).send({ message: 'Error interno del servidor', error: error.message });
     }
 };
-
 
 const actualizarUsuario = async (req, res) => {
     const { idusuario } = req.params;
@@ -369,9 +366,6 @@ const actualizarUsuarioSinPass = async (req, res) => {
         res.status(500).send({ message: 'Error interno del servidor', error: error.message });
     }
 };
-
-
-
 
 const eliminarUsuario = async (req, res) => {
     const { idusuario } = req.params;
