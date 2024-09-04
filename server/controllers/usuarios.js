@@ -276,6 +276,102 @@ const actualizarUsuario = async (req, res) => {
     }
 };
 
+const actualizarUsuarioSinPass = async (req, res) => {
+    const { idusuario } = req.params;
+
+    try {
+        // Buscar el usuario por ID
+        const usuario = await Usuarios.findByPk(idusuario);
+
+        if (!usuario) {
+            return res.status(404).send({ message: 'Usuario no encontrado.' });
+        }
+
+        // Verifica si ya existe otro usuario con el mismo nombre de usuario
+        const existeUsuario = await Usuarios.findOne({
+            where: {
+                usuario: req.body.usuario,
+                idusuario: { [Op.ne]: idusuario } // Excluye el usuario actual de la búsqueda
+            }
+        });
+
+        if (existeUsuario) {
+            return res.status(400).send({ message: 'El nombre de usuario ya está en uso por otro usuario.' });
+        }
+
+        // Extraer solo los campos permitidos para actualizar (usuario y idrol)
+        const datosActualizados = {
+            usuario: req.body.usuario,
+            idrol: req.body.idrol,
+        };
+
+        // Actualiza el usuario solo con usuario e idrol
+        await usuario.update(datosActualizados);
+
+        // Enviar correo si se actualizó el nombre de usuario
+        if (req.body.usuario) {
+            const transporter = nodemailer.createTransport({
+                service: 'Outlook',
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: req.body.email || usuario.email,
+                subject: 'Actualización de Credenciales en Paseo Las Lomas',
+                html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="color: #333; text-align: center;">Actualización de Credenciales</h2>
+                    <p style="font-size: 16px; color: #555;">
+                        Hola <strong>${req.body.usuario || usuario.usuario}</strong>,
+                    </p>
+                    <p style="font-size: 16px; color: #555;">
+                        Tus credenciales han sido actualizadas exitosamente. Aquí tienes tus credenciales actualizadas para acceder al sistema:
+                    </p>
+                    <div style="margin: 20px 0; padding: 15px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 5px;">
+                        <p style="font-size: 16px; color: #333;"><strong>Usuario:</strong> ${req.body.usuario || usuario.usuario}</p>
+                        <p style="font-size: 16px; color: #333;"><strong>Contraseña:</strong> (no cambiada)</p>
+                    </div>
+                    <p style="font-size: 16px; color: #555;">
+                        Por favor, recuerda mantener tus credenciales seguras.
+                    </p>
+                    <p style="font-size: 16px; color: #555;">
+                        Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.
+                    </p>
+                    <p style="font-size: 16px; color: #555;">
+                        Saludos cordiales,
+                    </p>
+                    <p style="font-size: 16px; color: #555;">
+                        El equipo de Paseo Las Lomas
+                    </p>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 14px; color: #aaa;">
+                        <p>&copy; ${new Date().getFullYear()} Paseo Las Lomas. Todos los derechos reservados.</p>
+                    </div>
+                </div>
+                `
+            };            
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error('Error al enviar el correo electrónico:', error);
+                } else {
+                    console.log('Correo electrónico enviado:', info.response);
+                }
+            });
+        }
+
+        res.status(200).send({ message: 'Usuario actualizado con éxito.' });
+    } catch (error) {
+        console.error('Error al actualizar el usuario:', error);
+        res.status(500).send({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
+
 
 const eliminarUsuario = async (req, res) => {
     const { idusuario } = req.params;
@@ -507,5 +603,5 @@ module.exports = {
     mostrarUsuarios, mostrarUsuariosActivos,
     crearUsuario, actualizarUsuario, eliminarUsuario,
     cambiarEstadoUsuario, resetPassword, mostrarUsuarioEmpleado,
-    resetPasswordPorIdUsuario
+    resetPasswordPorIdUsuario, actualizarUsuarioSinPass
 };
