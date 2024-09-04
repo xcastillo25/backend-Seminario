@@ -1,9 +1,17 @@
 const { Lotes } = require('../models');
+const { Sequelize } = require('sequelize');
 
 const mostrarLotes = async (req, res) => {
     try {
-        const lotes = await Lotes.findAll();
-        res.status(200).json({ lotes });
+        const lotes = await Lotes.findAll({});
+        
+        const lotesConUbicacion = lotes.map(lote => {
+            return {
+                ...lote.toJSON(), // Convierte el objeto Sequelize a un objeto JS puro
+                ubicacion: `${lote.manzana}${lote.lote}` // Concatenación de atributos
+            };
+        });
+        res.status(200).json({ lotes:lotesConUbicacion });
     } catch (error) {
         console.error('Error en mostrarLotes:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });

@@ -1,10 +1,26 @@
-const { Servicios, Clientes, Lotes } = require('../models');
+const { Servicios, Clientes, Lotes, Configuracion } = require('../models');
 const { Sequelize } = require('sequelize');
+
+const mostrarServicios1 = async (req, res) => {
+    try {
+        const servicios = await Servicios.findAll();
+        res.status(200).json({ Servicios:servicios });
+    } catch (error) {
+        console.error('Error en mostrar los Servicios:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
 
 const mostrarServicios = async (req, res) => {
     try {
         const servicios = await Servicios.findAll({
-            include: [
+            include:[
+                {
+                    model: Configuracion,
+                    as: 'configuracion',
+                    attributes: ['servicio']
+                },
                 {
                     model: Clientes,
                     as: 'clientes',
@@ -19,7 +35,57 @@ const mostrarServicios = async (req, res) => {
                 }
             ]
         });
-        res.status(200).json({ servicios });
+        res.status(200).json({ Servicios:servicios });
+    } catch (error) {
+        console.error('Error en mostrar los Servicios:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+const mostrarServiciosAlt = async (req, res) => {
+    try {
+        const servicios = await Servicios.findAll({
+            include: [
+                {
+                    model: Configuracion,
+                    as: 'configuracion',
+                    attributes: ['servicio']
+                },
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre']
+                },
+                {
+                    model: Lotes,
+                    as: 'lotes',
+                    attributes: [
+                        'manzana','lote'
+                    ]
+                }
+            ]
+        });
+
+        // Mapeamos los servicios para modificar la estructura de la respuesta
+        const serviciosModificados = servicios.map(servicio => {
+            return {
+                idservicio: servicio.idservicio,
+                idconfiguracion: servicio.idconfiguracion,
+                idlote: servicio.idlote,
+                idcliente: servicio.idcliente,
+                no_titulo: servicio.no_titulo,
+                no_contador: servicio.no_contador,
+                estatus_contador: servicio.estatus_contador,
+                activo: servicio.activo,
+                createdAt: servicio.createdAt,
+                updatedAt: servicio.updatedAt,
+                servicio: servicio.configuracion.servicio,
+                nombrecliente: servicio.clientes.nombre,
+                loteubicacion: `${servicio.lotes.manzana}${servicio.lotes.lote}`
+            };
+        });
+
+        res.status(200).json({ servicios: serviciosModificados });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
@@ -137,6 +203,6 @@ const eliminarServicio = async (req, res) => {
 };
 
 module.exports = {
-    mostrarServicios, mostrarServiciosActivos, crearServicio, actualizarServicio, eliminarServicio,
+    mostrarServicios, mostrarServiciosAlt , mostrarServiciosActivos, crearServicio, actualizarServicio, eliminarServicio,
     toggleActivoServicio
 };
