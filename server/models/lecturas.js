@@ -26,8 +26,16 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.DATE,
             allowNull: false
         },
+        mes: {
+            type: Datatypes.INTEGER,
+            allowNull: false
+        },
+        año: {
+            type: Datatypes.INTEGER,
+            allowNull: false
+        },
         url_foto: {
-            type: Datatypes.STRING(512),
+            type: Datatypes.STRING,
             allowNull: false
         },
         idusuario: {
@@ -51,7 +59,7 @@ module.exports = (sequelize, Datatypes) => {
     );
     Lecturas.associate = (models) => {
         Lecturas.belongsTo(models.Servicios, {
-            foreignKey: 'idservicios',
+            foreignKey: 'idservicio',
             as: 'servicios',
         });
 
