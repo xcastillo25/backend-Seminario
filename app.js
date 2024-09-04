@@ -35,7 +35,7 @@ app.use(cors({
 
 // ESPACIO PARA LAS SOLICITUDES
 app.get('/', (req, res) => {
-    res.status(200).send({ message: 'Bienvenido a Geoproyectos' });
+    res.status(200).send({ message: 'Bienvenido a Paseo Las Lomas, Salamá' });
 });
 
 require('./server/routes/configuracion')(app);
@@ -51,6 +51,7 @@ require('./server/routes/login')(app);
 require('./server/routes/historial-lecturas')(app);
 require('./server/routes/historial')(app);
 require('./server/routes/empleados')(app);
+require('./server/routes/viewservicios')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
