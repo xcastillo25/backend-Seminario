@@ -47,9 +47,9 @@ const toggleActivoLectura = async (req, res) => {
 
 const crearLectura = async (req, res) => {
     try{
-        const { idlote, lectura, fecha, url_foto,idusuario} = req.body;
+        const { idservicio, lectura, mes, año, fecha, url_foto,idusuario} = req.body;
 
-        const nuevaLectura = await Lecturas.create({idlote,lectura, fecha, url_foto,idusuario });
+        const nuevaLectura = await Lecturas.create({idservicio, mes, año, lectura,fecha, url_foto,idusuario });
         
         res.status(201).json ({ nuevaLectura });
     }catch (error){
