@@ -92,6 +92,31 @@ const mostrarServiciosAlt = async (req, res) => {
     }
 };
 
+const mostrarServiciosPagos = async (req, res) => {
+    try {
+        const servicios = await Servicios.findAll({
+            include: [
+                {
+                    model: Clientes,
+                    as: 'clientes',
+                    attributes: ['nombre', 'apellidos', 'cui', 'nit', 'telefono']
+                },
+                {
+                    model: Lotes,
+                    as: 'lotes',
+                    attributes: [
+                        [Sequelize.literal("CONCAT(manzana, lote)"), 'ubicacion']
+                    ]
+                }
+            ]
+        });
+        res.status(200).json({ servicios });
+    } catch (error) {
+        console.error('Error en mostrar los Servicios:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
 const mostrarServiciosActivos = async (req, res) => {
     try {
         const servicios = await Servicios.findAll({
@@ -204,5 +229,5 @@ const eliminarServicio = async (req, res) => {
 
 module.exports = {
     mostrarServicios, mostrarServiciosAlt , mostrarServiciosActivos, crearServicio, actualizarServicio, eliminarServicio,
-    toggleActivoServicio
+    toggleActivoServicio, mostrarServiciosPagos
 };
