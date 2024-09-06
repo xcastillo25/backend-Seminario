@@ -52,6 +52,7 @@ require('./server/routes/historial-lecturas')(app);
 require('./server/routes/historial')(app);
 require('./server/routes/empleados')(app);
 require('./server/routes/viewservicios')(app);
+require('./server/routes/photos')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });
