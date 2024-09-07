@@ -51,6 +51,7 @@ require('./server/routes/login')(app);
 require('./server/routes/historial-lecturas')(app);
 require('./server/routes/historial')(app);
 require('./server/routes/empleados')(app);
+require('./server/routes/viewlecturas')(app);
 require('./server/routes/viewservicios')(app);
 
 app.get('*', (req, res) => {
