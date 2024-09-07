@@ -13,7 +13,7 @@ const obtenerTodasLasLecturas = async (req, res) => {
                         {
                             model: Lotes,
                             as: 'lotes',
-                            attributes: ['manzana', 'lote']
+                            attributes: ['manzana','lote']
                         }
                     ]
                 }
@@ -29,7 +29,7 @@ const obtenerTodasLasLecturas = async (req, res) => {
                 año: lectura.año,
                 url_foto: lectura.url_foto,
                 numero_contador: lectura.servicios.no_contador,
-                lote: `${lectura.servicios.lotes.manzana} ${lectura.servicios.lotes.lote}`
+                lote: `${lectura.servicios.lotes.manzana}${lectura.servicios.lotes.lote}`
             }))
         });
     } catch (error) {
