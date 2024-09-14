@@ -54,7 +54,7 @@ const mostrarServiciosAlt = async (req, res) => {
                 {
                     model: Clientes,
                     as: 'clientes',
-                    attributes: ['nombre']
+                    attributes: ['nombre','apellidos']
                 },
                 {
                     model: Lotes,
@@ -80,7 +80,7 @@ const mostrarServiciosAlt = async (req, res) => {
                 createdAt: servicio.createdAt,
                 updatedAt: servicio.updatedAt,
                 servicio: servicio.configuracion.servicio,
-                nombrecliente: servicio.clientes.nombre,
+                nombrecliente: `${servicio.clientes.nombre} ${servicio.clientes.apellidos}`,
                 loteubicacion: `${servicio.lotes.manzana}${servicio.lotes.lote}`
             };
         });
