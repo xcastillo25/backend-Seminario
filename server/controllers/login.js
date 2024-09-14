@@ -50,6 +50,7 @@ const login = async (req, res) => {
         res.status(200).send({
             token,
             idusuario: usuarioEncontrado.idusuario,
+            idempleado: usuarioEncontrado.idempleado,
             nombre: usuarioEncontrado.empleados.nombre,
             apellidos: usuarioEncontrado.empleados.apellidos,
             foto: usuarioEncontrado.empleados.foto,
