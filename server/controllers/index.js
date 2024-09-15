@@ -13,11 +13,12 @@ const historial = require('./historial.js');
 const empleados = require('./empleados.js');
 const viewservicios = require('./viewservicios.js');
 const photos = require('./photos.js');
+const pagoServicios = require('./pago-servicios.js');
 
 module.exports = {
     configuracion, servicios, clientes, pagos, historial_servicios, 
     lotes, roles, usuarios, login,lecturas, historial_lecturas, historial,
-    empleados, viewservicios, photos
+    empleados, viewservicios, photos,pagoServicios
 }
 
 
