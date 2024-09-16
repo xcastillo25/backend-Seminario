@@ -25,6 +25,9 @@ module.exports = (sequelize, DataTypes) => {
             ubicacion: {
                 type: DataTypes.STRING,
                 allowNull: true
+            },
+            url_foto: {
+                type: DataTypes.STRING
             }
         }, 
         {
