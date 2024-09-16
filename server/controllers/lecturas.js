@@ -1,11 +1,22 @@
 const { where } = require('sequelize');
-const { Lecturas } = require('../models');
+const { Lecturas, ViewLecturas } = require('../models');
 const lecturas = require('../models/lecturas');
 
 const mostrarLecturas = async (req, res) => {
     try {
         const lecturas = await Lecturas.findAll();
         res.status(200).json({ lecturas });
+    } catch (error) {
+        console.error('Error en mostrarLecturas:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
+const mostrarLecturasDiarias = async (req, res) => {
+    try {
+        const viewlecturas = await ViewLecturas.findAll();
+        res.status(200).json({ viewlecturas });
     } catch (error) {
         console.error('Error en mostrarLecturas:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
@@ -100,5 +111,6 @@ module.exports = {
     crearLectura,
     actualizarLectura,
     eliminarLectura,
-    toggleActivoLectura
+    toggleActivoLectura,
+    mostrarLecturasDiarias
 };
