@@ -1,11 +1,22 @@
 const { where } = require('sequelize');
-const { Lecturas } = require('../models');
+const { Lecturas, ViewLecturas, Servicios } = require('../models');
 const lecturas = require('../models/lecturas');
 
 const mostrarLecturas = async (req, res) => {
     try {
         const lecturas = await Lecturas.findAll();
         res.status(200).json({ lecturas });
+    } catch (error) {
+        console.error('Error en mostrarLecturas:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
+const mostrarLecturasDiarias = async (req, res) => {
+    try {
+        const viewlecturas = await ViewLecturas.findAll();
+        res.status(200).json({ viewlecturas });
     } catch (error) {
         console.error('Error en mostrarLecturas:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
@@ -45,16 +56,39 @@ const toggleActivoLectura = async (req, res) => {
     }
 };
 
+//Crear Lectura
 const crearLectura = async (req, res) => {
-    try{
-        const { idservicio, lectura, mes, año, fecha, url_foto,idusuario} = req.body;
+    try {
+        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario } = req.body;
 
-        const nuevaLectura = await Lecturas.create({idservicio, mes, año, lectura,fecha, url_foto,idusuario });
-        
-        res.status(201).json ({ nuevaLectura });
-    }catch (error){
-        console.error('Error en crearLectura:' ,error);
-        res.status(400).json({message: 'Error al crear Lectura', error: error.message});
+        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
+        const lecturaExistente = await Lecturas.findOne({
+            where: {
+                idservicio,
+                mes,
+                año
+            }
+        });
+
+        if (lecturaExistente) {
+            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
+        }
+
+        // Crear la nueva lectura si no hay conflictos
+        const nuevaLectura = await Lecturas.create({
+            idservicio,
+            mes,
+            año,
+            lectura,
+            fecha,
+            url_foto,
+            idusuario,
+        });
+
+        res.status(201).json({ nuevaLectura });
+    } catch (error) {
+        console.error('Error en crearLectura:', error);
+        res.status(400).json({ message: 'Error al crear Lectura', error: error.message });
     }
 };
 
@@ -100,5 +134,6 @@ module.exports = {
     crearLectura,
     actualizarLectura,
     eliminarLectura,
-    toggleActivoLectura
+    toggleActivoLectura,
+    mostrarLecturasDiarias
 };

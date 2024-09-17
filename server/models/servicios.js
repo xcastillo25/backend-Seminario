@@ -52,7 +52,26 @@ module.exports = (sequelize, DataTypes) => {
         }, 
         {
             timestamps: true,
-            tableName: 'tblservicios'
+            tableName: 'tblservicios',
+            hooks: {
+                afterCreate: async (servicio, options) => {
+                    try {
+                        // Obtener la configuración para el servicio recién creado
+                        const configuracion = await sequelize.models.Configuracion.findByPk(servicio.idconfiguracion);
+
+                        if (configuracion) {
+                            // Crear un nuevo registro en la tabla de pago servicios
+                            await sequelize.models.PagoServicios.create({
+                                idservicio: servicio.idservicio,
+                                cuota: configuracion.cuota_instalacion,
+                                cuota_conexion: configuracion.cuota_conexion
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error al crear el pago:', error);
+                    }
+                }
+            }
         }
     );
 

@@ -54,6 +54,7 @@ require('./server/routes/empleados')(app);
 require('./server/routes/viewlecturas')(app);
 require('./server/routes/viewservicios')(app);
 require('./server/routes/photos')(app);
+require('./server/routes/pago-servicios')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });

@@ -14,12 +14,14 @@ const empleados = require('./empleados.js');
 const viewlecturas = require('./viewlecturas.js');
 const viewservicios = require('./viewservicios.js');
 const photos = require('./photos.js');
+const pagoServicios = require('./pago-servicios.js');
 
 module.exports = {
     configuracion, servicios, clientes, pagos, historial_servicios, 
     lotes, roles, usuarios, login,lecturas, historial_lecturas, historial,
     empleados, viewlecturas, viewservicios
-    ,viewservicios, photos
+    ,viewservicios, photos,
+    empleados, viewservicios, photos,pagoServicios
 }
 
 
