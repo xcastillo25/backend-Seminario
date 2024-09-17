@@ -56,6 +56,7 @@ const toggleActivoLectura = async (req, res) => {
     }
 };
 
+//Crear Lectura
 const crearLectura = async (req, res) => {
     try {
         const { idservicio, lectura, mes, año, fecha, url_foto, idusuario } = req.body;
@@ -90,8 +91,6 @@ const crearLectura = async (req, res) => {
         res.status(400).json({ message: 'Error al crear Lectura', error: error.message });
     }
 };
-
-
 
 const actualizarLectura = async (req, res) => {
     const { idlectura } = req.params;
