@@ -1,5 +1,5 @@
 const { where } = require('sequelize');
-const { Lecturas, ViewLecturas } = require('../models');
+const { Lecturas, ViewLecturas, Servicios } = require('../models');
 const lecturas = require('../models/lecturas');
 
 const mostrarLecturas = async (req, res) => {
@@ -57,17 +57,41 @@ const toggleActivoLectura = async (req, res) => {
 };
 
 const crearLectura = async (req, res) => {
-    try{
-        const { idservicio, lectura, mes, año, fecha, url_foto,idusuario} = req.body;
+    try {
+        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario } = req.body;
 
-        const nuevaLectura = await Lecturas.create({idservicio, mes, año, lectura,fecha, url_foto,idusuario });
-        
-        res.status(201).json ({ nuevaLectura });
-    }catch (error){
-        console.error('Error en crearLectura:' ,error);
-        res.status(400).json({message: 'Error al crear Lectura', error: error.message});
+        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
+        const lecturaExistente = await Lecturas.findOne({
+            where: {
+                idservicio,
+                mes,
+                año
+            }
+        });
+
+        if (lecturaExistente) {
+            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
+        }
+
+        // Crear la nueva lectura si no hay conflictos
+        const nuevaLectura = await Lecturas.create({
+            idservicio,
+            mes,
+            año,
+            lectura,
+            fecha,
+            url_foto,
+            idusuario,
+        });
+
+        res.status(201).json({ nuevaLectura });
+    } catch (error) {
+        console.error('Error en crearLectura:', error);
+        res.status(400).json({ message: 'Error al crear Lectura', error: error.message });
     }
 };
+
+
 
 const actualizarLectura = async (req, res) => {
     const { idlectura } = req.params;
