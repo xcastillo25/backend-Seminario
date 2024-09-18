@@ -18,6 +18,14 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: true
             },
+            mes: {
+                type: DataTypes.INTEGER,
+                allowNull: true
+            },
+            año: {
+                type: DataTypes.INTEGER,
+                allowNull: true
+            },
             no_contador: {
                 type: DataTypes.STRING,
                 allowNull: true
