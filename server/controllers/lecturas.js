@@ -64,15 +64,28 @@ const crearLectura = async (req, res) => {
         const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
 
         // Verificar si ya existe una lectura con el mismo UUID
-        const lecturaExistente = await Lecturas.findOne({
+        const lecturaExistentePorUUID = await Lecturas.findOne({
             where: { uuid }
         });
 
-        if (lecturaExistente) {
+        if (lecturaExistentePorUUID) {
             return res.status(400).json({ message: 'La lectura ya ha sido sincronizada previamente.' });
         }
 
-        // Crear la nueva lectura si no hay conflicto
+        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
+        const lecturaExistentePorServicioMesAno = await Lecturas.findOne({
+            where: {
+                idservicio,
+                mes,
+                año
+            }
+        });
+
+        if (lecturaExistentePorServicioMesAno) {
+            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
+        }
+
+        // Crear la nueva lectura si no hay conflictos
         const nuevaLectura = await Lecturas.create({
             idservicio,
             lectura,
