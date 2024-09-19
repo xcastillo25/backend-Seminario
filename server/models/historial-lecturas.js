@@ -16,6 +16,22 @@ module.exports = (sequelize, DataTypes) => {
                     key: 'idlectura'
                 }
             },
+            idusuario_original: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                references: {
+                    model: 'tblusuarios',
+                    key: 'idusuario'
+                }
+            },
+            idusuario_editor: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                references: {
+                    model: 'tblusuarios',
+                    key: 'idusuario'
+                }
+            },
             lectura_anterior: {
                 type: DataTypes.INTEGER,
                 allowNull: false
@@ -43,6 +59,16 @@ module.exports = (sequelize, DataTypes) => {
         HistorialLecturas.belongsTo(models.Lecturas, {
             foreignKey: 'idlectura',
             as: 'lecturas'
+        });
+
+        HistorialLecturas.belongsTo(models.Usuarios, {
+            foreignKey: 'idusuario_original',
+            as: 'usuarioOriginal'
+        });
+
+        HistorialLecturas.belongsTo(models.Usuarios, {
+            foreignKey: 'idusuario_editor',
+            as: 'usuarioEfitor'
         });
     };
     return HistorialLecturas;

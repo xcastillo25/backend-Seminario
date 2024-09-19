@@ -46,6 +46,10 @@ module.exports = (sequelize, Datatypes) => {
                 key:'idusuario'
             }
         },
+        uuid: {
+            type: Datatypes.STRING,
+            unique: true
+        } ,
         activo: {
             type: Datatypes.BOOLEAN,
             allowNull: false,
@@ -54,7 +58,19 @@ module.exports = (sequelize, Datatypes) => {
     },
         {
             timestamps: true,
-            tableName: 'tbllecturas'
+            tableName: 'tbllecturas',
+            hooks: {
+                beforeUpdate: async (lectura, options) =>{
+                    await sequelize.models.HistorialLecturas.create({
+                        idlectura: lectura.idlectura,
+                        idusuario_original: lectura._previousDataValues.idusuario,
+                        idusuario_editor: lectura.idusuario,
+                        lectura_anterior: lectura._previousDataValues.lectura,
+                        nueva_lectura: lectura.lectura,
+                        fecha: new Date()
+                    })
+                }
+            }
         }
     );
     Lecturas.associate = (models) => {
