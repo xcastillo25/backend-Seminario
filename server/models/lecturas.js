@@ -50,12 +50,16 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.BOOLEAN,
             allowNull: false,
             defaultValue: true
+        },
+        uuid: {
+            type: Datatypes.STRING,
+            unique: true
         }
     },
-        {
-            timestamps: true,
-            tableName: 'tbllecturas'
-        }
+    {
+        timestamps: true,
+        tableName: 'tbllecturas'
+    }
     );
     Lecturas.associate = (models) => {
         Lecturas.belongsTo(models.Servicios, {
