@@ -106,7 +106,7 @@ const crearLectura = async (req, res) => {
 
 const actualizarLectura = async (req, res) => {
     const { idlectura } = req.params;
-    const { lectura, fecha, url_foto, idusuario} = req.body;
+    const { lectura, url_foto, idusuario} = req.body;
 
     try {
         const lecturasEncontrado = await Lecturas.findByPk(idlectura);
@@ -115,7 +115,7 @@ const actualizarLectura = async (req, res) => {
             return res.status(404).json({ message: 'Lectura no encontrado.' });
         }
 
-        await lecturasEncontrado.update({ lectura,fecha,url_foto, idusuario });
+        await lecturasEncontrado.update({ lectura,url_foto, idusuario });
 
         res.status(200).json({ message: 'Lectura actualizada con éxito.' });
     } catch (error) {
