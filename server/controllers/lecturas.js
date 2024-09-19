@@ -60,36 +60,34 @@ const toggleActivoLectura = async (req, res) => {
 
 //Crear Lectura
 const crearLectura = async (req, res) => {
-    const { idservicio, lectura, mes, año, fecha, url_foto, idusuario } = req.body;
-
-    const data = {
-        idservicio,
-        lectura,
-        mes,
-        año,
-        fecha,
-        url_foto,
-        idusuario,
-        uuid: uuidv4() // Generar un UUID único para esta lectura
-    };
-
     try {
-        // Verificar si ya existe una lectura para el mismo idservicio, mes y año
+        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
+
+        // Verificar si ya existe una lectura con el mismo UUID
         const lecturaExistente = await Lecturas.findOne({
-            where: { idservicio, mes, año }
+            where: { uuid }
         });
 
         if (lecturaExistente) {
-            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
+            return res.status(400).json({ message: 'La lectura ya ha sido sincronizada previamente.' });
         }
 
-        // Crear la nueva lectura
-        const nuevaLectura = await Lecturas.create(data);
+        // Crear la nueva lectura si no hay conflicto
+        const nuevaLectura = await Lecturas.create({
+            idservicio,
+            lectura,
+            mes,
+            año,
+            fecha,
+            url_foto,
+            idusuario,
+            uuid  // Guardar el UUID
+        });
 
         res.status(201).json({ nuevaLectura });
     } catch (error) {
         console.error('Error en crearLectura:', error);
-        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+        res.status(500).json({ message: 'Error al crear Lectura', error: error.message });
     }
 };
 
