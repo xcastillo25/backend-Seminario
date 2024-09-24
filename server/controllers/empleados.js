@@ -108,6 +108,28 @@ const actualizarEmpleado = async (req, res) => {
     }
 };
 
+const actualizarTelefonoEmpleado = async (req, res) => {
+    const { idempleado } = req.params;
+    const { telefono } = req.body;
+
+    try {
+        const empleado = await Empleados.findByPk(idempleado);
+
+        if (!empleado) {
+            return res.status(404).json({ message: 'Empleado no encontrado.' });
+        }
+
+        // Actualizar solo el campo teléfono
+        await empleado.update({ telefono });
+
+        res.status(200).json({ message: 'Teléfono del empleado actualizado con éxito.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+
 const eliminarEmpleado = async (req, res) => {
     const { idempleado } = req.params;
 
@@ -125,5 +147,5 @@ const eliminarEmpleado = async (req, res) => {
 
 module.exports = {
     MostrarEmpleados, MostrarEmpleadosActivos, crearEmpleado, actualizarEmpleado, eliminarEmpleado, 
-    toggleActivoEmpleado, MostrarEmpleadoPerfil
+    toggleActivoEmpleado, MostrarEmpleadoPerfil, actualizarTelefonoEmpleado
 }
