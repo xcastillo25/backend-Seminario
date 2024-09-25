@@ -65,52 +65,51 @@ const login = async (req, res) => {
     }
 };
 
-const generarPasswordAleatorio = () => {
-    return crypto.randomBytes(3).toString('hex'); // Genera una contraseña de 5 caracteres (números y letras)
-};
+function generateRandomPassword() {
+    return Math.random().toString(36).slice(-4);
+}
 
 const recuperarPassword = async (req, res) => {
     try {
-        const { idempleado, passwordActual, nuevaPassword } = req.body;
-        console.log('Solicitando cambio de contraseña para el empleado:', idempleado);
+        const { usuario, email } = req.body;
+        console.log(`Datos recibidos - Usuario: ${usuario}, Email: ${email}`);
 
-        // Buscar el empleado por ID y obtener el usuario asociado
-        const empleadoEncontrado = await Empleados.findByPk(idempleado, {
-            include: [{ model: Usuarios, as: 'usuarios' }] // Verifica que este alias coincida
+        // Buscar el usuario por nombre de usuario y verificar el correo en la tabla de Empleados
+        const usuarioEncontrado = await Usuarios.findOne({
+            where: { usuario: usuario },
+            include: [{
+                model: Empleados,
+                as: 'empleados',
+                where: { email: email }, // Verificar que el email coincida en la tabla de Empleados
+                attributes: ['nombre', 'apellidos', 'email'] // Incluir los atributos necesarios
+            }]
         });
 
-        if (!empleadoEncontrado) {
-            console.error('Empleado no encontrado:', idempleado);
-            throw new Error('Empleado no encontrado.');
-        }
-
-        const usuarioEncontrado = empleadoEncontrado.usuarios[0]; // Accede al primer usuario
         if (!usuarioEncontrado) {
-            console.error('Usuario no encontrado para el empleado:', idempleado);
-            throw new Error('Usuario no encontrado para este empleado.');
+            console.error('Usuario o correo no encontrado');
+            return res.status(404).json({ error: 'Usuario o correo no encontrado.' });
         }
 
-        // Verificar la contraseña actual
-        const passwordIsValid = await bcrypt.compare(passwordActual, usuarioEncontrado.password);
-        if (!passwordIsValid) {
-            console.warn('La contraseña actual es incorrecta para el empleado:', idempleado);
-            throw new Error('La contraseña actual es incorrecta.');
-        }
+        console.log('Usuario encontrado:', usuarioEncontrado);
 
-        // Hashear la nueva contraseña
-        const hashedNewPassword = await bcrypt.hash(nuevaPassword, 10);
-        console.log('Nueva contraseña hasheada para el empleado:', idempleado);
+        // Generar una nueva contraseña aleatoria
+        const nuevaPassword = generateRandomPassword();
+        console.log('Nueva contraseña generada:', nuevaPassword);
+
+        // Hash de la nueva contraseña
+        const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+        console.log('Contraseña hasheada');
 
         // Actualizar la contraseña en la base de datos
         await Usuarios.update(
-            { password: hashedNewPassword },
+            { password: hashedPassword },
             { where: { idusuario: usuarioEncontrado.idusuario } }
         );
-        console.log('Contraseña actualizada exitosamente para el empleado:', idempleado);
+        console.log('Contraseña actualizada en la base de datos');
 
         // Configurar el transporte de nodemailer usando las credenciales del archivo .env
         const transporter = nodemailer.createTransport({
-            service: 'Outlook', // O cualquier otro servicio de correo que utilices
+            service: 'Outlook',
             auth: {
                 user: process.env.EMAIL,
                 pass: process.env.PASSWORD
@@ -168,6 +167,7 @@ const recuperarPassword = async (req, res) => {
         res.status(500).send({ error: error.message });
     }
 };
+
 
 const cambiarPassword = async (req, res) => {
     try {
