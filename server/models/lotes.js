@@ -12,7 +12,7 @@ module.exports = (sequelize, Datatypes) => {
             allowNull: false
         },
         lote: {
-            type: Datatypes.INTEGER,
+            type: Datatypes.STRING(10),
             allowNull: false
         },
         observaciones: {
