@@ -58,10 +58,11 @@ const toggleActivoLectura = async (req, res) => {
     }
 };
 
-//Crear Lectura
 const crearLectura = async (req, res) => {
     try {
         const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
+
+        console.log('Datos recibidos:', { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid });
 
         // Verificar si ya existe una lectura con el mismo UUID
         const lecturaExistentePorUUID = await Lecturas.findOne({
@@ -69,6 +70,7 @@ const crearLectura = async (req, res) => {
         });
 
         if (lecturaExistentePorUUID) {
+            console.log('Lectura existente por UUID:', lecturaExistentePorUUID);
             return res.status(400).json({ message: 'La lectura ya ha sido sincronizada previamente.' });
         }
 
@@ -82,6 +84,7 @@ const crearLectura = async (req, res) => {
         });
 
         if (lecturaExistentePorServicioMesAno) {
+            console.log('Lectura existente por servicio, mes y año:', lecturaExistentePorServicioMesAno);
             return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
         }
 
@@ -97,36 +100,76 @@ const crearLectura = async (req, res) => {
             uuid  // Guardar el UUID
         });
 
-        const lecturaAnterior = await Lecturas.findOne({
-            where: { idservicio },
+        console.log('Nueva lectura creada:', nuevaLectura);
+
+        // Obtener la lectura del mes anterior (del mismo servicio, mes anterior y mismo año)
+        const lecturaMesAnterior = await Lecturas.findOne({
+            where: {
+                idservicio,
+                mes: mes - 1 > 0 ? mes - 1 : 12,  // Si es enero (mes 1), debemos verificar diciembre del año anterior
+                año: mes - 1 > 0 ? año : año - 1
+            },
             order: [['fecha', 'DESC']],
             limit: 1
         });
 
-        const lecturaAnteriorValor = lecturaAnterior ? lecturaAnterior.lectura : 0;
+        // Si no existe lectura del mes anterior, tomar lectura anterior como 0
+        const lecturaAnteriorValor = lecturaMesAnterior ? parseFloat(lecturaMesAnterior.lectura) : 0;
+        console.log('Valor de la lectura anterior (mes anterior):', lecturaAnteriorValor);
 
+        // Obtener el límite de exceso desde la tabla Configuracion
         const servicio = await Servicios.findByPk(idservicio, {
             include: [{ model: Configuracion, as: 'configuracion' }]
         });
 
-        const limiteExceso = servicio.configuracion.limite;
-        const cuota = servicio.configuracion.cuota;
-        const porcentajeExceso = servicio.configuracion.porcentaje_exceso;
-
-        if (consumoActual > limiteExceso) {
-            const exceso = consumoActual - limiteExceso;
-            const montoExceso = exceso * (cuota * (porcentajeExceso / 100));
-
-            // Crear el registro en la tabla Excesos
-            await Excesos.create({
-                idlectura: nuevaLectura.idlectura,
-                exceso: exceso,
-                monto_exceso: montoExceso,
-                mora: 0  // Puedes ajustar este valor o calcular la mora si es necesario
-            });
+        if (!servicio) {
+            console.log('Error: Servicio no encontrado para idservicio:', idservicio);
+            return res.status(404).json({ message: 'Servicio no encontrado.' });
         }
 
-        res.status(201).json({ nuevaLectura });
+        console.log('Configuración del servicio:', servicio.configuracion);
+
+        const limiteExceso = parseFloat(servicio.configuracion.limite);
+        const cuota = parseFloat(servicio.configuracion.cuota);
+        const porcentajeExceso = 0.10; // 10% del valor de la cuota
+
+        console.log('Límite de exceso:', limiteExceso, 'Cuota:', cuota, 'Porcentaje de exceso:', porcentajeExceso);
+
+        // Calcular el consumo del mes actual
+        const consumoActual = parseFloat(lectura) - lecturaAnteriorValor;
+        console.log('Consumo actual (mes actual):', consumoActual);
+
+        // Calcular el exceso solo si el consumo actual excede el límite mensual
+        let exceso = 0;
+        let montoExceso = 0;
+        if (consumoActual > limiteExceso) {
+            exceso = consumoActual - limiteExceso;
+            montoExceso = exceso * (cuota * porcentajeExceso);
+        }
+
+        console.log('Exceso calculado:', exceso, 'Monto del exceso:', montoExceso);
+
+        // Crear el registro en la tabla Excesos (siempre, incluso si el exceso es 0)
+        const excesoCreado = await Excesos.create({
+            idlectura: nuevaLectura.idlectura,
+            exceso: exceso,
+            monto_exceso: montoExceso,
+            mora: 0,  // Puedes ajustar este valor o calcular la mora si es necesario
+            activo: true,
+            pagada: false
+        });
+
+        console.log('Exceso creado:', excesoCreado);
+
+        res.status(201).json({
+            nuevaLectura,
+            excesoCreado: {
+                idexceso: excesoCreado.idexceso,
+                exceso: excesoCreado.exceso,
+                monto_exceso: excesoCreado.monto_exceso
+            },
+            message: 'Lectura y exceso (incluyendo 0) creados con éxito'
+        });
     } catch (error) {
         console.error('Error en crearLectura:', error);
         res.status(500).json({ message: 'Error al crear Lectura', error: error.message });
