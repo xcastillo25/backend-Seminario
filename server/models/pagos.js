@@ -59,6 +59,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
                 defaultValue: true
+            },
+            pagada: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false
             }
         },
         {
