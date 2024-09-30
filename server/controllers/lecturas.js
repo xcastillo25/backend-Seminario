@@ -1,5 +1,5 @@
 const { where } = require('sequelize');
-const { Lecturas, ViewLecturas, Servicios } = require('../models');
+const { Lecturas, ViewLecturas, Servicios, Excesos, Configuracion } = require('../models');
 const lecturas = require('../models/lecturas');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
@@ -96,6 +96,35 @@ const crearLectura = async (req, res) => {
             idusuario,
             uuid  // Guardar el UUID
         });
+
+        const lecturaAnterior = await Lecturas.findOne({
+            where: { idservicio },
+            order: [['fecha', 'DESC']],
+            limit: 1
+        });
+
+        const lecturaAnteriorValor = lecturaAnterior ? lecturaAnterior.lectura : 0;
+
+        const servicio = await Servicios.findByPk(idservicio, {
+            include: [{ model: Configuracion, as: 'configuracion' }]
+        });
+
+        const limiteExceso = servicio.configuracion.limite;
+        const cuota = servicio.configuracion.cuota;
+        const porcentajeExceso = servicio.configuracion.porcentaje_exceso;
+
+        if (consumoActual > limiteExceso) {
+            const exceso = consumoActual - limiteExceso;
+            const montoExceso = exceso * (cuota * (porcentajeExceso / 100));
+
+            // Crear el registro en la tabla Excesos
+            await Excesos.create({
+                idlectura: nuevaLectura.idlectura,
+                exceso: exceso,
+                monto_exceso: montoExceso,
+                mora: 0  // Puedes ajustar este valor o calcular la mora si es necesario
+            });
+        }
 
         res.status(201).json({ nuevaLectura });
     } catch (error) {
