@@ -27,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false
             },
-            mora: {
-                type: DataTypes.DECIMAL(18, 2),
-                allowNull: false
-            },
             activo: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
