@@ -44,6 +44,14 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING(50),
                 allowNull: true
             },
+            mes_inicio_lectura: {
+                type: DataTypes.INTEGER, // 1-12 para representar el mes
+                allowNull: false
+            },
+            anio_inicio_lectura: {
+                type: DataTypes.INTEGER, // Año en formato YYYY
+                allowNull: false
+            },
             activo: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
@@ -56,11 +64,8 @@ module.exports = (sequelize, DataTypes) => {
             hooks: {
                 afterCreate: async (servicio, options) => {
                     try {
-                        // Obtener la configuración para el servicio recién creado
                         const configuracion = await sequelize.models.Configuracion.findByPk(servicio.idconfiguracion);
-
                         if (configuracion) {
-                            // Crear un nuevo registro en la tabla de pago servicios
                             await sequelize.models.PagoServicios.create({
                                 idservicio: servicio.idservicio,
                                 cuota: configuracion.cuota_instalacion,
@@ -75,20 +80,10 @@ module.exports = (sequelize, DataTypes) => {
         }
     );
 
-    // Asociación con tblconfiguracion
     Servicios.associate = (models) => {
-        Servicios.belongsTo(models.Configuracion, {
-            foreignKey: 'idconfiguracion',
-            as: 'configuracion'
-        });
-        Servicios.belongsTo(models.Lotes, {
-            foreignKey: 'idlote',
-            as: 'lotes'
-        });
-        Servicios.belongsTo(models.Clientes, {
-            foreignKey: 'idcliente',
-            as: 'clientes'
-        });
+        Servicios.belongsTo(models.Configuracion, { foreignKey: 'idconfiguracion', as: 'configuracion' });
+        Servicios.belongsTo(models.Lotes, { foreignKey: 'idlote', as: 'lotes' });
+        Servicios.belongsTo(models.Clientes, { foreignKey: 'idcliente', as: 'clientes' });
     };
 
     return Servicios;
