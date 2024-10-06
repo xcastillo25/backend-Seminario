@@ -71,6 +71,10 @@ module.exports = (sequelize, Datatypes) => {
             allowNull: false,
             defaultValue: false // Indica si la mora ya ha sido pagada
         },
+        cuota: {
+            type: Datatypes.DECIMAL(18,2),
+            allowNull: false,
+        },
         cuota_mensual: {
             type: Datatypes.DECIMAL(18,2),
             allowNull: false,
