@@ -117,7 +117,7 @@ const crearUsuario = async (req, res) => {
 
         // Configurar el transporte de nodemailer usando las credenciales del archivo .env
         const transporter = nodemailer.createTransport({
-            service: 'Outlook',
+            service: 'Gmail',
             auth: {
                 user: process.env.EMAIL,
                 pass: process.env.PASSWORD
@@ -214,7 +214,7 @@ const actualizarUsuario = async (req, res) => {
         // Enviar correo con las credenciales si se actualizó el nombre de usuario o la contraseña
         if (req.body.usuario || req.body.password) {
             const transporter = nodemailer.createTransport({
-                service: 'Outlook',
+                service: 'Gmail',
                 auth: {
                     user: process.env.EMAIL,
                     pass: process.env.PASSWORD
@@ -308,7 +308,7 @@ const actualizarUsuarioSinPass = async (req, res) => {
         // Enviar correo si se actualizó el nombre de usuario
         if (req.body.usuario) {
             const transporter = nodemailer.createTransport({
-                service: 'Outlook',
+                service: 'Gmail',
                 auth: {
                     user: process.env.EMAIL,
                     pass: process.env.PASSWORD
@@ -439,7 +439,7 @@ const resetPassword = async (req, res) => {
 
         // Configurar el transporte de nodemailer usando las credenciales del archivo .env
         const transporter = nodemailer.createTransport({
-            service: 'Outlook',
+            service: 'Gmail',
             auth: {
                 user: process.env.EMAIL,
                 pass: process.env.PASSWORD
@@ -531,7 +531,7 @@ const resetPasswordPorIdUsuario = async (req, res) => {
 
         // Configurar el transporte de nodemailer usando las credenciales del archivo .env
         const transporter = nodemailer.createTransport({
-            service: 'Outlook',
+            service: 'Gmail',
             auth: {
                 user: process.env.EMAIL,
                 pass: process.env.PASSWORD
