@@ -109,7 +109,7 @@ const recuperarPassword = async (req, res) => {
 
         // Configurar el transporte de nodemailer usando las credenciales del archivo .env
         const transporter = nodemailer.createTransport({
-            service: 'Outlook',
+            service: 'Gmail',
             auth: {
                 user: process.env.EMAIL,
                 pass: process.env.PASSWORD
@@ -213,7 +213,7 @@ const cambiarPassword = async (req, res) => {
 
         // Configurar el transporte de nodemailer
         const transporter = nodemailer.createTransport({
-            service: 'Outlook', // O cualquier otro servicio de correo que utilices
+            service: 'Gmail', // O cualquier otro servicio de correo que utilices
             auth: {
                 user: process.env.EMAIL,
                 pass: process.env.PASSWORD
