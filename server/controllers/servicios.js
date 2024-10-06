@@ -71,7 +71,8 @@ const mostrarServiciosAlt = async (req, res) => {
                 cuota_conexion: servicio.configuracion.cuota_conexion,
                 cuota_instalacion: servicio.configuracion.cuota_instalacion,
                 mes_inicio_lectura: servicio.mes_inicio_lectura, 
-                anio_inicio_lectura: servicio.anio_inicio_lectura 
+                anio_inicio_lectura: servicio.anio_inicio_lectura,
+                activo: servicio.activo 
             };
         });
 
