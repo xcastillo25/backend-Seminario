@@ -44,6 +44,14 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING(50),
                 allowNull: true
             },
+            mes_inicio_lectura: {
+                type: DataTypes.INTEGER, // 1-12 para representar el mes
+                allowNull: false
+            },
+            anio_inicio_lectura: {
+                type: DataTypes.INTEGER, // Año en formato YYYY
+                allowNull: false
+            },
             activo: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
@@ -52,25 +60,14 @@ module.exports = (sequelize, DataTypes) => {
         }, 
         {
             timestamps: true,
-            tableName: 'tblservicios',
-            
+            tableName: 'tblservicios'
         }
     );
 
-    // Asociación con tblconfiguracion
     Servicios.associate = (models) => {
-        Servicios.belongsTo(models.Configuracion, {
-            foreignKey: 'idconfiguracion',
-            as: 'configuracion'
-        });
-        Servicios.belongsTo(models.Lotes, {
-            foreignKey: 'idlote',
-            as: 'lotes'
-        });
-        Servicios.belongsTo(models.Clientes, {
-            foreignKey: 'idcliente',
-            as: 'clientes'
-        });
+        Servicios.belongsTo(models.Configuracion, { foreignKey: 'idconfiguracion', as: 'configuracion' });
+        Servicios.belongsTo(models.Lotes, { foreignKey: 'idlote', as: 'lotes' });
+        Servicios.belongsTo(models.Clientes, { foreignKey: 'idcliente', as: 'clientes' });
     };
 
     return Servicios;

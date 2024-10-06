@@ -1,21 +1,10 @@
 const { Servicios, Clientes, Lotes, Configuracion } = require('../models');
 const { Sequelize } = require('sequelize');
 
-const mostrarServicios1 = async (req, res) => {
-    try {
-        const servicios = await Servicios.findAll();
-        res.status(200).json({ Servicios:servicios });
-    } catch (error) {
-        console.error('Error en mostrar los Servicios:', error);
-        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
-    }
-};
-
-
 const mostrarServicios = async (req, res) => {
     try {
         const servicios = await Servicios.findAll({
-            include:[
+            include: [
                 {
                     model: Configuracion,
                     as: 'configuracion',
@@ -35,7 +24,7 @@ const mostrarServicios = async (req, res) => {
                 }
             ]
         });
-        res.status(200).json({ Servicios:servicios });
+        res.status(200).json({ Servicios: servicios });
     } catch (error) {
         console.error('Error en mostrar los Servicios:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
@@ -54,14 +43,12 @@ const mostrarServiciosAlt = async (req, res) => {
                 {
                     model: Clientes,
                     as: 'clientes',
-                    attributes: ['nombre','apellidos']
+                    attributes: ['nombre', 'apellidos']
                 },
                 {
                     model: Lotes,
                     as: 'lotes',
-                    attributes: [
-                        'manzana','lote'
-                    ]
+                    attributes: ['manzana', 'lote']
                 }
             ]
         });
@@ -76,14 +63,15 @@ const mostrarServiciosAlt = async (req, res) => {
                 no_titulo: servicio.no_titulo,
                 no_contador: servicio.no_contador,
                 estatus_contador: servicio.estatus_contador,
-                activo: servicio.activo,
                 createdAt: servicio.createdAt,
                 updatedAt: servicio.updatedAt,
                 servicio: servicio.configuracion.servicio,
                 nombrecliente: `${servicio.clientes.nombre} ${servicio.clientes.apellidos}`,
                 loteubicacion: `${servicio.lotes.manzana}${servicio.lotes.lote}`,
                 cuota_conexion: servicio.configuracion.cuota_conexion,
-                cuota_instalacion: servicio.configuracion.cuota_instalacion
+                cuota_instalacion: servicio.configuracion.cuota_instalacion,
+                mes_inicio_lectura: servicio.mes_inicio_lectura, 
+                anio_inicio_lectura: servicio.anio_inicio_lectura 
             };
         });
 
@@ -151,17 +139,14 @@ const toggleActivoServicio = async (req, res) => {
     const { idservicio } = req.params;
 
     try {
-        // Buscar el servicio por su ID
         const servicio = await Servicios.findByPk(idservicio);
 
         if (!servicio) {
             return res.status(404).json({ message: 'Servicio no encontrado.' });
         }
 
-        // Alternar el valor de activo
         servicio.activo = !servicio.activo;
 
-        // Guardar el cambio en la base de datos
         await servicio.save();
 
         res.status(200).json({ message: 'Estado del servicio actualizado con éxito.', servicio });
@@ -173,9 +158,19 @@ const toggleActivoServicio = async (req, res) => {
 
 const crearServicio = async (req, res) => {
     try {
-        const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
+        const { 
+            idconfiguracion, 
+            idlote, 
+            idcliente, 
+            no_titulo, 
+            no_contador, 
+            estatus_contador,
+            mes_inicio_lectura, // Nuevo campo añadido
+            anio_inicio_lectura // Nuevo campo añadido
+        } = req.body;
 
-        // Verificar si ya existe un servicio asociado al mismo lote
+        console.log('Datos recibidos para crear servicio:', req.body);
+
         const servicioExistente = await Servicios.findOne({
             where: { idlote: idlote }
         });
@@ -184,8 +179,16 @@ const crearServicio = async (req, res) => {
             return res.status(400).json({ message: 'Ya existe un servicio asociado a este lote.' });
         }
 
-        // Crear el nuevo servicio
-        const nuevoServicio = await Servicios.create({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
+        const nuevoServicio = await Servicios.create({ 
+            idconfiguracion, 
+            idlote, 
+            idcliente, 
+            no_titulo, 
+            no_contador, 
+            estatus_contador,
+            mes_inicio_lectura, // Nuevo campo añadido
+            anio_inicio_lectura // Nuevo campo añadido
+        });
 
         res.status(201).json({ nuevoServicio });
     } catch (error) {
@@ -196,7 +199,16 @@ const crearServicio = async (req, res) => {
 
 const actualizarServicio = async (req, res) => {
     const { idservicio } = req.params;
-    const { idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador } = req.body;
+    const { 
+        idconfiguracion, 
+        idlote, 
+        idcliente, 
+        no_titulo, 
+        no_contador, 
+        estatus_contador,
+        mes_inicio_lectura, // Nuevo campo añadido
+        anio_inicio_lectura // Nuevo campo añadido
+    } = req.body;
 
     try {
         const servicio = await Servicios.findByPk(idservicio);
@@ -205,7 +217,16 @@ const actualizarServicio = async (req, res) => {
             return res.status(404).json({ message: 'Servicio no encontrado.' });
         }
 
-        await servicio.update({ idconfiguracion, idlote, idcliente, no_titulo, no_contador, estatus_contador });
+        await servicio.update({ 
+            idconfiguracion, 
+            idlote, 
+            idcliente, 
+            no_titulo, 
+            no_contador, 
+            estatus_contador,
+            mes_inicio_lectura, // Nuevo campo añadido
+            anio_inicio_lectura // Nuevo campo añadido
+        });
 
         res.status(200).json({ message: 'Servicio actualizado con éxito.' });
     } catch (error) {
@@ -230,6 +251,12 @@ const eliminarServicio = async (req, res) => {
 };
 
 module.exports = {
-    mostrarServicios, mostrarServiciosAlt , mostrarServiciosActivos, crearServicio, actualizarServicio, eliminarServicio,
-    toggleActivoServicio, mostrarServiciosPagos
+    mostrarServicios,
+    mostrarServiciosAlt,
+    mostrarServiciosActivos,
+    crearServicio,
+    actualizarServicio,
+    eliminarServicio,
+    toggleActivoServicio,
+    mostrarServiciosPagos
 };
