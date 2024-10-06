@@ -49,7 +49,7 @@ const mostrarServiciosAlt = async (req, res) => {
                 {
                     model: Configuracion,
                     as: 'configuracion',
-                    attributes: ['servicio']
+                    attributes: ['servicio','cuota_instalacion','cuota_conexion']
                 },
                 {
                     model: Clientes,
@@ -81,7 +81,9 @@ const mostrarServiciosAlt = async (req, res) => {
                 updatedAt: servicio.updatedAt,
                 servicio: servicio.configuracion.servicio,
                 nombrecliente: `${servicio.clientes.nombre} ${servicio.clientes.apellidos}`,
-                loteubicacion: `${servicio.lotes.manzana}${servicio.lotes.lote}`
+                loteubicacion: `${servicio.lotes.manzana}${servicio.lotes.lote}`,
+                cuota_conexion: servicio.configuracion.cuota_conexion,
+                cuota_instalacion: servicio.configuracion.cuota_instalacion
             };
         });
 

@@ -12,7 +12,7 @@ const MostrarPagos = async (req, res) => {
 
 const MostrarPagosActivos = async (req, res) => {
     try{
-        const pagos = await Pagos.findAll({
+        const pagos = await PagoServicios.findAll({
             where: {
                 activo: true
             }
@@ -29,7 +29,7 @@ const toggleActivoPago = async (req, res) => {
 
     try {
         // Buscar el pago por su ID
-        const pago = await Pagos.findByPk(idpago);
+        const pago = await PagoServicios.findByPk(idpago);
 
         if (!pago) {
             return res.status(404).json({ message: 'pago no encontrado.' });
@@ -50,9 +50,10 @@ const toggleActivoPago = async (req, res) => {
 
 const crearPago = async (req, res) => {
     try {
-        const { idservicio , mes, año, fecha, concepto, consumo, mora, exceso, monto_exceso, total, recibo } = req.body;
+        const { idservicio , nombre, total, pendiente, concepto, pagado, fecha, observaciones, activo } = req.body;
 
-        const nuevoPago = await Pagos.create({ idservicio , mes, año, fecha, concepto, consumo, mora, exceso, monto_exceso, total, recibo });
+        
+        const nuevoPago = await PagoServicios.create({ idservicio , nombre, total, pendiente, concepto, pagado, fecha, observaciones, activo });
 
         res.status(201).json({ nuevoPago });
     } catch (error) {
@@ -63,16 +64,16 @@ const crearPago = async (req, res) => {
 
 const actualizarPago = async (req, res) => {
     const { idpago } = req.params;
-    const { idservicio , mes, año, fecha, concepto, consumo, mora, exceso, monto_exceso, total, recibo, activo } = req.body;
+    const { nombre, total, pendiente, concepto, pagado, fecha, observaciones, activo } = req.body;
 
     try{
-        const pago = await Pagos.findByPk(idpago);
+        const pago = await PagoServicios.findByPk(idpago);
 
         if (!pago) {
             return res.status(404).json({ message: 'Pago no encontrado.' });
         }
 
-        await pago.update({ idservicio , mes, año, fecha, concepto, consumo, mora, exceso, monto_exceso, total, recibo, activo });
+        await pago.update({ nombre, total, pendiente, concepto, pagado, fecha, observaciones, activo });
 
         res.status(200).json( { message: 'Pago actualizado con éxito.' });
     } catch (error) {
@@ -85,7 +86,7 @@ const eliminarPago = async (req, res) => {
     const { idpago } = req.params;
 
     try {
-        await Pagos.destroy({
+        await PagoServicios.destroy({
             where: { idpago: idpago}
         });
 

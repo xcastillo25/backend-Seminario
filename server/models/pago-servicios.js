@@ -10,11 +10,23 @@ module.exports = (sequelize, DataTypes) => {
                 autoIncrement: true,
                 allowNull: false
             },
-            cuota: {
+            nombre: {
+                type: DataTypes.STRING(128),
+                allowNull: false
+            },
+            concepto: {
+                type: DataTypes.STRING(128),
+                allowNull: false
+            },
+            total: {
                 type: DataTypes.DECIMAL(18,2),
                 allowNull: false
             },
-            cuota_conexion: {
+            pendiente: {
+                type: DataTypes.DECIMAL(18,2),
+                allowNull: false
+            },
+            pagado: {
                 type: DataTypes.DECIMAL(18,2),
                 allowNull: false
             },
