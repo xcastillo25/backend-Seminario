@@ -110,7 +110,12 @@ module.exports = (sequelize, Datatypes) => {
             type: Datatypes.DECIMAL(18,2),
             allowNull: true,
             defaultValue: 0.0
-        }
+        },
+        lectura_pagada: {
+            type: Datatypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        },
     },
         {
             timestamps: true,

@@ -86,6 +86,9 @@ const mostrarServiciosAlt = async (req, res) => {
 const mostrarServiciosPagos = async (req, res) => {
     try {
         const servicios = await Servicios.findAll({
+            where: {
+                estatus_contador: 'Pagando' // Filtrar solo los servicios cuyo estatus_contador sea 'Pagando'
+            },
             include: [
                 {
                     model: Clientes,
@@ -98,6 +101,11 @@ const mostrarServiciosPagos = async (req, res) => {
                     attributes: [
                         [Sequelize.literal("CONCAT(manzana, lote)"), 'ubicacion']
                     ]
+                },
+                {
+                    model: Configuracion,
+                    as: 'configuracion',
+                    attributes: ['cuota']
                 }
             ]
         });
@@ -107,6 +115,7 @@ const mostrarServiciosPagos = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
 
 const mostrarServiciosActivos = async (req, res) => {
     try {

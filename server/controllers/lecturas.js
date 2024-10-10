@@ -1,4 +1,5 @@
 const { where } = require('sequelize');
+const { Op } = require('sequelize');
 const { Lecturas, ViewLecturas, Servicios, Excesos, Configuracion } = require('../models');
 const lecturas = require('../models/lecturas');
 const axios = require('axios');
@@ -18,12 +19,19 @@ const mostrarLecturasIdServicio = async (req, res) => {
     const { idservicio } = req.params;  // Obtenemos el idservicio de los parámetros de la URL
     try {
         const lecturas = await Lecturas.findAll({
-            where: { idservicio },  // Filtramos por el idservicio
-            order: [['createdAt', 'DESC']]  // Ordenamos por createdAt en orden ascendente (del más antiguo al más reciente)
+            where: {
+                idservicio,  // Filtramos por el idservicio
+                [Op.or]: [
+                    { lectura_pagada: false },
+                    { mora_pagada: false },
+                    { exceso_pagado: false }
+                ]
+            },
+            order: [['createdAt', 'DESC']]  // Ordenamos por createdAt en orden descendente (del más reciente al más antiguo)
         });
 
         if (lecturas.length === 0) {
-            return res.status(404).json({ message: 'No se encontraron lecturas para este servicio' });
+            return res.status(404).json({ message: 'No se encontraron lecturas pendientes de pago para este servicio' });
         }
 
         res.status(200).json({ lecturas });
@@ -34,13 +42,38 @@ const mostrarLecturasIdServicio = async (req, res) => {
 };
 
 
-
 const mostrarLecturasDiarias = async (req, res) => {
     try {
         const viewlecturas = await ViewLecturas.findAll();
         res.status(200).json({ viewlecturas });
     } catch (error) {
         console.error('Error en mostrarLecturas:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
+const mostrarLecturasPagadasPorServicio = async (req, res) => {
+    const { idservicio } = req.params;  // Obtener el idservicio de los parámetros de la URL
+
+    try {
+        // Buscar lecturas pagadas que correspondan al id_servicio proporcionado
+        const lecturasPagadas = await Lecturas.findAll({
+            where: {
+                idservicio,  // Filtrar por idservicio
+                lectura_pagada: true,
+                mora_pagada: true,
+                exceso_pagado: true
+            },
+            order: [['fecha', 'DESC']]  // Ordenar por la fecha en orden descendente (de la más reciente a la más antigua)
+        });
+
+        if (lecturasPagadas.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron lecturas pagadas para este servicio.' });
+        }
+
+        res.status(200).json({ lecturasPagadas });
+    } catch (error) {
+        console.error('Error en mostrar lecturas pagadas:', error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
@@ -380,6 +413,32 @@ const crearLectura = async (req, res) => {
     }
 };
 
+const actualizarLecturaPagada = async (req, res) => {
+    const { idlectura } = req.params; // Obtener el ID de la lectura
+    const { pagada, mora_pagada, exceso_pagado } = req.body; // Datos de la actualización
+
+    try {
+        // Buscar la lectura por su ID
+        const lectura = await Lecturas.findByPk(idlectura);
+
+        if (!lectura) {
+            return res.status(404).json({ message: 'Lectura no encontrada.' });
+        }
+
+        // Actualizar los campos necesarios
+        await lectura.update({
+            pagada: pagada !== undefined ? pagada : lectura.pagada,
+            mora_pagada: mora_pagada !== undefined ? mora_pagada : lectura.mora_pagada,
+            exceso_pagado: exceso_pagado !== undefined ? exceso_pagado : lectura.exceso_pagado,
+        });
+
+        res.status(200).json({ message: 'Lectura actualizada con éxito.', lectura });
+    } catch (error) {
+        console.error('Error en actualizarLectura:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
+
 const actualizarLectura = async (req, res) => {
     const { idlectura } = req.params;
     const { lectura, url_foto, idusuario } = req.body;
@@ -560,5 +619,7 @@ module.exports = {
     toggleActivoLectura,
     mostrarLecturasDiarias,
     obtenerLecturasNoPagadas,
-    mostrarLecturasIdServicio
+    mostrarLecturasIdServicio,
+    actualizarLecturaPagada,
+    mostrarLecturasPagadasPorServicio
 };
