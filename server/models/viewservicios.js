@@ -18,6 +18,14 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: true
             },
+            mes_inicio_lectura:{
+                type:DataTypes.INTEGER,
+                allowNull: false
+            },
+            anio_inicio_lectura:{
+                type:DataTypes.INTEGER,
+                allowNull: false
+            },
             no_contador: {
                 type: DataTypes.STRING,
                 allowNull: true
