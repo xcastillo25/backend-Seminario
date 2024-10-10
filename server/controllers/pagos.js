@@ -1,4 +1,4 @@
-const { Pagos } = require('../models');
+const { Pagos, Lecturas } = require('../models');
 
 const MostrarPagos = async (req, res) => {
     try{
@@ -49,17 +49,49 @@ const toggleActivoPago = async (req, res) => {
 };
 
 const crearPago = async (req, res) => {
-    try {
-        const { idservicio , mes, año, fecha, concepto, consumo, mora, exceso, monto_exceso, total, recibo } = req.body;
+    const { idlectura, mes, año, fecha, concepto, cuota, mora, exceso, monto_exceso, total } = req.body;
 
-        const nuevoPago = await Pagos.create({ idservicio , mes, año, fecha, concepto, consumo, mora, exceso, monto_exceso, total, recibo });
+    try {
+        // Crear el pago en tblpagos
+        const nuevoPago = await Pagos.create({
+            idlectura,
+            mes,
+            año,
+            fecha,
+            concepto,
+            cuota,
+            mora,
+            exceso,
+            monto_exceso,
+            total,
+            activo: true
+        });
+
+        // Buscar la lectura asociada
+        const lectura = await Lecturas.findByPk(idlectura);
+        if (lectura) {
+            // Actualizar la lectura con los valores pagados
+            await lectura.update({
+                lectura_pagada: cuota > 0 ? true : lectura.lectura_pagada,
+                mora_pagada: mora > 0 ? true : lectura.mora_pagada,
+                exceso_pagado: exceso > 0 ? true : lectura.exceso_pagado,
+                // Actualizamos los montos acumulados en la lectura
+                monto_mora: lectura.monto_mora - mora,  // Resta el monto pagado
+                cuota: lectura.cuota - cuota,  // Resta la cuota pagada
+                monto_exceso: lectura.monto_exceso - exceso,  // Resta el exceso pagado
+                monto_acumulado: lectura.monto_acumulado - total,  // Actualiza el monto acumulado total
+                suma_total: lectura.suma_total - total  // Actualiza la suma total
+            });
+        }
 
         res.status(201).json({ nuevoPago });
     } catch (error) {
         console.error('Error en crearPago:', error);
-        res.status(400).json({ message: 'Error interno del servidor', error: error.message });
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
+
 
 const actualizarPago = async (req, res) => {
     const { idpago } = req.params;
