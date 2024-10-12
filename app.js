@@ -56,6 +56,7 @@ require('./server/routes/viewservicios')(app);
 require('./server/routes/photos')(app);
 require('./server/routes/pago-servicios')(app);
 require('./server/routes/reportesGraficasInicio')(app);
+require('./server/routes/pagos_adelantados')(app);
 
 app.get('*', (req, res) => {
     res.status(200).send({ message: 'Bienvenido' });

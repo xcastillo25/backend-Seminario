@@ -1,18 +1,18 @@
 module.exports = (sequelize, DataTypes) => {
-    const Pagos = sequelize.define(
-        'Pagos',{
+    const Pagos_Adelantados = sequelize.define(
+        'Pagos_Adelantados',{
             idpago: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
                 allowNull: false
             },
-            idlectura: {
+            idservicio: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
                 references: {
-                    model: 'tbllecturas',
-                    key: 'idlectura'
+                    model: 'tblservicios',
+                    key: 'idservicio'
                 }
             },
             mes: {
@@ -51,6 +51,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DECIMAL(18, 2),
                 allowNull: false
             },
+            descuento: {
+                type: DataTypes.DECIMAL(18, 2),
+                allowNull: false  
+            },
             activo: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
@@ -59,16 +63,16 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             timestamps: true,
-            tableName: 'tblpagos'
+            tableName: 'tblpagos_adelantados'
         }
     );
 
-    Pagos.associate = (models) => {
-        Pagos.belongsTo(models.Lecturas, {
-            foreignKey: 'idlectura',
-            as: 'lecturas'
+    Pagos_Adelantados.associate = (models) => {
+        Pagos_Adelantados.belongsTo(models.Servicios, {
+            foreignKey: 'idservicio',
+            as: 'servicios'
         });
     };
 
-    return Pagos;
+    return Pagos_Adelantados;
 };

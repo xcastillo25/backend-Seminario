@@ -16,13 +16,13 @@ const viewservicios = require('./viewservicios.js');
 const photos = require('./photos.js');
 const pagoServicios = require('./pago-servicios.js');
 const reportesGraficasInicio = require('./reportesGraficasInicio.js');
+const pagosAdelantados = require('./pagos_adelantados.js');
 
 module.exports = {
     configuracion, servicios, clientes, pagos, historial_servicios, 
     lotes, roles, usuarios, login,lecturas, historial_lecturas, historial,
     empleados, viewlecturas, viewservicios
-    ,viewservicios, photos,
-    empleados, viewservicios, photos,pagoServicios, reportesGraficasInicio
+    ,viewservicios, photos, empleados, viewservicios, photos,pagoServicios, reportesGraficasInicio, pagosAdelantados
 }
 
 
