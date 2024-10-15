@@ -2,7 +2,9 @@ const { Empleados } = require('../models');
 
 const MostrarEmpleados = async (req, res) => {
     try{
-        const empleados = await Empleados.findAll();
+        const empleados = await Empleados.findAll({
+            order: [['apellidos', 'ASC']]
+        });
         res.status(200).json({ empleados: empleados});
     } catch (error) {
         console.error(error);
@@ -135,15 +137,22 @@ const eliminarEmpleado = async (req, res) => {
 
     try {
         await Empleados.destroy({
-            where: { idempleado: idempleado}
+            where: { idempleado: idempleado }
         });
 
-        res.status(200).json({ message: 'Empleado eliminado definitivamente con éxito.'});
-    } catch(error) {
+        res.status(200).json({ message: 'Empleado eliminado definitivamente con éxito.' });
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error interno del servidor', error: error.message});
+
+        // Verificar si el error es debido a una restricción de llave foránea (ER_ROW_IS_REFERENCED)
+        if (error.original && error.original.code === 'ER_ROW_IS_REFERENCED') {
+            res.status(400).json({ message: 'No se puede eliminar el empleado porque tiene registros relacionados.' });
+        } else {
+            res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+        }
     }
 };
+
 
 module.exports = {
     MostrarEmpleados, MostrarEmpleadosActivos, crearEmpleado, actualizarEmpleado, eliminarEmpleado, 

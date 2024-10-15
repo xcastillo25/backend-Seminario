@@ -110,9 +110,16 @@ const eliminarLote = async (req, res) => {
         res.status(200).json({ message: 'Lote eliminado definitivamente con éxito.' });
     } catch (error) {
         console.error('Error en eliminarLote:', error);
-        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+
+        // Verificar si el error es debido a una restricción de llave foránea (ER_ROW_IS_REFERENCED)
+        if (error.original && error.original.code === 'ER_ROW_IS_REFERENCED') {
+            res.status(400).json({ message: 'No se puede eliminar el lote porque tiene registros relacionados.' });
+        } else {
+            res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+        }
     }
 };
+
 
 module.exports = {
     mostrarLotes,
