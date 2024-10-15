@@ -3,7 +3,9 @@ const { Op } = require('sequelize');
 
 const MostrarClientes = async (req, res) => {
     try{
-        const clientes = await Clientes.findAll();
+        const clientes = await Clientes.findAll({
+            order: [['apellidos', 'ASC']]
+        });
         res.status(200).json({ clientes: clientes});
     } catch (error) {
         console.error(error);
@@ -96,15 +98,23 @@ const eliminarCliente = async (req, res) => {
 
     try {
         await Clientes.destroy({
-            where: { idcliente: idcliente}
+            where: { idcliente: idcliente }
         });
 
-        res.status(200).json({ message: 'Cliente eliminado definitivamente con éxito.'});
-    } catch(error) {
+        res.status(200).json({ message: 'Cliente eliminado definitivamente con éxito.' });
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error interno del servidor', error: error.message});
+
+        // Verificar si el error es debido a una restricción de llave foránea (ER_ROW_IS_REFERENCED)
+        if (error.original && error.original.code === 'ER_ROW_IS_REFERENCED') {
+            res.status(400).json({ message: 'No se puede eliminar el cliente porque tiene registros relacionados.' });
+        } else {
+            res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+        }
     }
 };
+
+
 
 module.exports = {
     MostrarClientes, MostrarClientesActivos, crearCliente, actualizarCliente, eliminarCliente, 
