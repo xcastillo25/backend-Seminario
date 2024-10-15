@@ -2,7 +2,11 @@ const { ViewServices } = require('../models');
 
 const mostrarViewServices = async (req, res) => {
     try {
-        const viewServices = await ViewServices.findAll();
+        const viewServices = await ViewServices.findAll({
+            where: {
+                estatus_contador: 'Pagando'
+            }
+        });
         res.status(200).json({ viewServices });
     } catch (error) {
         console.error('Error al mostrar los servicios de la vista:', error);
