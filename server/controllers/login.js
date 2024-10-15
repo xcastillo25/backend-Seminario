@@ -23,7 +23,7 @@ const login = async (req, res) => {
                 {
                     model: Roles,
                     as: 'roles',
-                    attributes: ['rol'] // Asegúrate de que 'rol' es el nombre correcto del atributo en tu tabla de roles
+                    attributes: ['rol','clientes','empleados','lotes','servicios','roles','usuarios','pagos','lecturas','configuracion','historial_pagos'] // Asegúrate de que 'rol' es el nombre correcto del atributo en tu tabla de roles
                 }
             ]
         });
@@ -58,7 +58,17 @@ const login = async (req, res) => {
             nombre: usuarioEncontrado.empleados.nombre,
             apellidos: usuarioEncontrado.empleados.apellidos,
             foto: usuarioEncontrado.empleados.foto,
-            rol: usuarioEncontrado.roles.rol // Aquí se incluye el rol
+            rol: usuarioEncontrado.roles.rol,
+            clientes: usuarioEncontrado.roles.clientes,
+            empleados: usuarioEncontrado.roles.empleados,
+            lotes: usuarioEncontrado.roles.lotes,
+            servicios: usuarioEncontrado.roles.servicios,
+            roles: usuarioEncontrado.roles.roles,
+            usuarios: usuarioEncontrado.roles.usuarios,
+            pagos: usuarioEncontrado.roles.pagos,
+            lecturas: usuarioEncontrado.roles.lecturas,
+            configuracion: usuarioEncontrado.roles.configuracion,
+            historial_pagos: usuarioEncontrado.roles.historial_pagos 
         });
     } catch (error) {
         res.status(500).send({ error: error.message });

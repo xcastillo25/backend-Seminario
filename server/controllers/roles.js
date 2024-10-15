@@ -57,8 +57,8 @@ const toggleActivoRol = async (req, res) =>{
 const crearRol = async (req, res) => {
     try{
 
-        const { rol, activo } = req.body; 
-        const nuevoRol = await Roles.create({rol,activo});
+        const { rol, activo, clientes, empleados, lotes, servicios, roles, usuarios, pagos, lecturas, configuracion, historial_pagos } = req.body; 
+        const nuevoRol = await Roles.create({rol,activo, clientes, empleados, lotes, servicios, roles, usuarios, pagos, lecturas, configuracion, historial_pagos});
         res.status(201).json({nuevoRol});
 
     } catch (error){
@@ -71,16 +71,16 @@ const crearRol = async (req, res) => {
 
 const actualizarRol = async (req, res) => {
     const { idrol } = req.params;
-    const { rol } = req.body;
+    const { rol, clientes, empleados, lotes, servicios, roles, usuarios, pagos, lecturas, configuracion, historial_pagos } = req.body;
 
     try {
-        const roles = await Roles.findByPk(idrol);
+        const existe = await Roles.findByPk(idrol);
 
-        if (!roles) {
+        if (!existe) {
             return res.status(404).json({ message: 'Rol no encontrado.' });
         }
 
-        await roles.update({ rol});
+        await existe.update({ rol, clientes, empleados, lotes, servicios, roles: roles, usuarios, pagos, lecturas, configuracion, historial_pagos});
 
         res.status(200).json({ message: 'Rol actualizado con éxito.' });
     } catch (error) {

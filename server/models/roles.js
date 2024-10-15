@@ -15,6 +15,56 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.BOOLEAN,
                 allowNull: true,
                 defaultValue: true
+            },
+            clientes: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            empleados: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            lotes: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            servicios: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            roles: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            usuarios: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            pagos: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            lecturas: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            configuracion: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
+            },
+            historial_pagos: {
+                type: DataTypes.BOOLEAN,
+                allowNull: true,
+                defaultValue: false
             }
         },
         {
