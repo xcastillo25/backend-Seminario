@@ -72,6 +72,7 @@ const mostrarServiciosAlt = async (req, res) => {
                 cuota_instalacion: servicio.configuracion.cuota_instalacion,
                 mes_inicio_lectura: servicio.mes_inicio_lectura, 
                 anio_inicio_lectura: servicio.anio_inicio_lectura,
+                lectura_inicial: servicio.lectura_inicial,
                 activo: servicio.activo 
             };
         });
@@ -176,7 +177,8 @@ const crearServicio = async (req, res) => {
             no_contador, 
             estatus_contador,
             mes_inicio_lectura, // Nuevo campo añadido
-            anio_inicio_lectura // Nuevo campo añadido
+            anio_inicio_lectura, // Nuevo campo añadido
+            lectura_inicial,
         } = req.body;
 
         console.log('Datos recibidos para crear servicio:', req.body);
@@ -197,7 +199,8 @@ const crearServicio = async (req, res) => {
             no_contador, 
             estatus_contador,
             mes_inicio_lectura, // Nuevo campo añadido
-            anio_inicio_lectura // Nuevo campo añadido
+            anio_inicio_lectura, // Nuevo campo añadido
+            lectura_inicial
         });
 
         res.status(201).json({ nuevoServicio });
@@ -217,7 +220,8 @@ const actualizarServicio = async (req, res) => {
         no_contador, 
         estatus_contador,
         mes_inicio_lectura, // Nuevo campo añadido
-        anio_inicio_lectura // Nuevo campo añadido
+        anio_inicio_lectura, // Nuevo campo añadido
+        lectura_inicial
     } = req.body;
 
     try {
@@ -235,7 +239,8 @@ const actualizarServicio = async (req, res) => {
             no_contador, 
             estatus_contador,
             mes_inicio_lectura, // Nuevo campo añadido
-            anio_inicio_lectura // Nuevo campo añadido
+            anio_inicio_lectura, // Nuevo campo añadido
+            lectura_inicial
         });
 
         res.status(200).json({ message: 'Servicio actualizado con éxito.' });

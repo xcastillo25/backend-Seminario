@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false
             },
             concepto: {
-                type: DataTypes.STRING(100),
+                type: DataTypes.STRING,
                 allowNull: false
             },
             cuota: {

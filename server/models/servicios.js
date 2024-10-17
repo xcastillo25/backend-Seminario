@@ -52,6 +52,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER, // Año en formato YYYY
                 allowNull: false
             },
+            lectura_inicial: {
+                type: DataTypes.DECIMAL(18,2),
+                allowNull: false
+            },
             activo: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
