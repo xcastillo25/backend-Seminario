@@ -1,9 +1,43 @@
-const { Pagos, Lecturas } = require('../models');
+const { raw } = require('mysql2');
+const { Pagos, Lecturas,Servicios, Lotes } = require('../models');
 
 const MostrarPagos = async (req, res) => {
     try{
-        const pagos = await Pagos.findAll();
-        res.status(200).json({ pagos: pagos});
+        const pagos = await Pagos.findAll({
+            include:[
+                {
+                    model: Lecturas,
+                    as: 'lecturas',
+                    attributes: ['idlectura'],
+                    include:[
+                        {
+                            model:Servicios,
+                            as:'servicios',
+                            attributes: ['idservicio'],
+                            include: [
+                                {
+                                    model:Lotes,
+                                    as: 'lotes',
+                                    attributes:['manzana','lote']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        const pagosFormateados = pagos.map((pago) => {
+            const plano = pago.toJSON();
+            delete plano.lecturas
+            return{
+                ...plano,
+                ubicacion: `${pago.lecturas.servicios.lotes.manzana}${pago.lecturas.servicios.lotes.lote}` 
+            }
+        })
+
+
+        res.status(200).json({ pagos: pagosFormateados});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error interno del servidor', error: error.message});
