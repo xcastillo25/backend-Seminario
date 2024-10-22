@@ -1370,82 +1370,62 @@ const crearLectura = async (req, res) => {
     }
 };
 
-// Controller para actualizar lecturas con pagos parciales
 const actualizarLecturaParcial = async (req, res) => {
     try {
-        const { idlectura, pagoCuota, pagoMora, pagoExceso } = req.body;
+        const { idlectura } = req.params;
+        const {
+            monto_mora, 
+            monto_acumulado, 
+            cuota, 
+            cuota_mensual, 
+            exceso, 
+            monto_exceso, 
+            mora_pagada, 
+            exceso_pagado, 
+            porcentaje_acumulado, 
+            total, 
+            suma_total, 
+            lectura_pagada 
+        } = req.body;
 
-        // Buscar la lectura por ID
-        const lectura = await Lecturas.findByPk(idlectura);
-        if (!lectura) {
-            return res.status(404).json({ message: `Lectura con ID ${idlectura} no encontrada.` });
+        // Verificar si se recibió un ID de lectura válido
+        console.log('ID de lectura recibido:', idlectura);
+
+        // Validar si la lectura existe en la base de datos
+        const lecturaExistente = await Lecturas.findByPk(idlectura);
+
+        if (!lecturaExistente) {
+            return res.status(404).json({ message: 'Lectura no encontrada' });
         }
 
-        // Procesar pago de mora
-        let nuevaMora = parseFloat(lectura.monto_mora) - parseFloat(pagoMora);
-        nuevaMora = nuevaMora < 0 ? 0 : nuevaMora; // Asegurarse de no tener mora negativa
+        // Validar si el monto_exceso es correcto y manejar los casos de exceso_pagado
+        const nuevoExcesoPagado = monto_exceso === 0 ? true : false;
 
-        // Procesar pago de cuota
-        let nuevaCuota = parseFloat(lectura.cuota) - parseFloat(pagoCuota);
-        nuevaCuota = nuevaCuota < 0 ? 0 : nuevaCuota; // Asegurarse de no tener cuota negativa
+        // Actualizar los campos de la lectura
+        await lecturaExistente.update({
+            monto_mora,
+            monto_acumulado,
+            cuota,
+            cuota_mensual,
+            exceso,
+            monto_exceso,
+            mora_pagada,
+            exceso_pagado: nuevoExcesoPagado, // Asegurarse de que sea true solo cuando el monto_exceso sea 0
+            porcentaje_acumulado,
+            total,
+            suma_total,
+            lectura_pagada
+        });
 
-        // Si la mora y la cuota están completamente pagadas
-        if (nuevaMora === 0 && nuevaCuota === 0) {
-            await lectura.update({
-                mora_pagada: true,
-                lectura_pagada: true,
-                porcentaje_acumulado: 0
-            });
-        } else {
-            // Calcular nueva mora si la cuota no está completamente pagada
-            const porcentaje_base = 0.03; // 3% de mora
-            const iva = 0.12;              // 12% de IVA
-            const fechaActual = new Date();
-            const fechaLectura = new Date(lectura.año, lectura.mes - 1); // Los meses en JS son base 0
-
-            // Calcular la diferencia de meses
-            const mesesDeAtraso = (fechaActual.getFullYear() - fechaLectura.getFullYear()) * 12 + 
-                                  (fechaActual.getMonth() - fechaLectura.getMonth());
-
-            const nuevoPorcentajeMora = porcentaje_base * mesesDeAtraso; // Nueva mora por los meses de atraso
-            const moraAcumulada = nuevaCuota * nuevoPorcentajeMora * (1 + iva); // Aplicar IVA a la mora
-
-            await lectura.update({
-                mora_pagada: false,
-                porcentaje_acumulado: nuevoPorcentajeMora.toFixed(2),
-                monto_mora: moraAcumulada.toFixed(2)
-            });
-        }
-
-        // Procesar pago de exceso
-        let nuevoExceso = parseFloat(lectura.monto_exceso) - parseFloat(pagoExceso);
-        nuevoExceso = nuevoExceso < 0 ? 0 : nuevoExceso; // Asegurarse de no tener exceso negativo
-        await lectura.update({ exceso_pagado: nuevoExceso === 0 });
-
-        // Calcular los valores restantes
-        const cuotaMensual = (parseFloat(lectura.cuota) + nuevaMora).toFixed(2); // Cuota más mora
-        const montoAcumulado = parseFloat(cuotaMensual).toFixed(2); // El acumulado actual
-        const sumaTotal = (parseFloat(cuotaMensual) + nuevoExceso).toFixed(2); // Cuota más mora más exceso
-
-        // Validar que el valor de suma_total no sea NaN antes de intentar actualizar
-        if (!isNaN(sumaTotal)) {
-            await lectura.update({
-                cuota_mensual: cuotaMensual,
-                monto_acumulado: montoAcumulado,
-                suma_total: sumaTotal
-            });
-        } else {
-            console.error('Valor de suma_total es NaN, no se actualizó la lectura:', idlectura);
-        }
-
-        res.status(200).json({ message: 'Lectura parcial actualizada con éxito.' });
+        res.status(200).json({
+            message: 'Lectura actualizada con éxito',
+            lectura: lecturaExistente
+        });
     } catch (error) {
-        console.error('Error al actualizar lectura parcial:', error);
-        res.status(500).json({ message: 'Error al actualizar lectura parcial', error: error.message });
+        console.error('Error actualizando lectura parcial:', error);
+        res.status(500).json({ message: 'Error actualizando la lectura', error: error.message });
     }
 };
-
-
 
 
 

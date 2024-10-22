@@ -9,7 +9,7 @@ module.exports = (app) => {
     app.post('/api/lectura', lecturasController.crearLectura);
     app.put('/api/lectura/:idlectura', lecturasController.actualizarLectura);
     app.put('/api/lectura-pagada/:idlectura', lecturasController.actualizarLecturaPagada);
-    app.put('/api/lectura-parcial-pagada', lecturasController.actualizarLecturaParcial);
+    app.put('/api/lectura-parcial/:idlectura', lecturasController.actualizarLecturaParcial);
     app.delete('/api/lectura/:idlectura', lecturasController.eliminarLectura);
     app.patch('/api/lectura/:idlectura/toggle', lecturasController.toggleActivoLectura);
     app.get('/api/lecturas-no-pagadas/:idservicio', lecturasController.obtenerLecturasNoPagadas);
