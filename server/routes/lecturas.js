@@ -3,6 +3,7 @@ const lecturasController = require('../controllers').lecturas;
 module.exports = (app) => {
     app.get('/api/lectura', lecturasController.mostrarLecturas);
     app.get('/api/viewlecturas', lecturasController.mostrarLecturasDiarias);
+    app.get('/api/reporte-lecturas/:idservicio', lecturasController.mostrarReporteLecturas);
     app.get('/api/lectura/activo', lecturasController.mostrarLecturasActivas);
     app.get('/api/lecturas-idservicio/:idservicio', lecturasController.mostrarLecturasIdServicio);
     app.get('/api/lecturas-pagadas/:idservicio', lecturasController.mostrarLecturasPagadasPorServicio);

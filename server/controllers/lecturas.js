@@ -41,6 +41,33 @@ const mostrarLecturasIdServicio = async (req, res) => {
     }
 };
 
+const mostrarReporteLecturas = async (req, res) => {
+    const { idservicio } = req.params; // Obtenemos el idservicio de los parámetros de la URL
+    try {
+        const lecturas = await Lecturas.findAll({
+            where: {
+                idservicio
+            },
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: Servicios,
+                    as: 'servicios', // Debe coincidir con el alias en la asociación
+                    attributes: ['lectura_inicial'] // Solo traemos el campo lectura_inicial de Servicios
+                }
+            ]
+        });
+
+        if (lecturas.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron lecturas pendientes de pago para este servicio' });
+        }
+
+        res.status(200).json({ lecturas });
+    } catch (error) {
+        console.error('Error en mostrarLecturas:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
 
 const mostrarLecturasDiarias = async (req, res) => {
     try {
@@ -111,522 +138,7 @@ const toggleActivoLectura = async (req, res) => {
     }
 };
 
-const crearLectura2 = async (req, res) => {
-    try {
-        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
-
-        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
-        const lecturaExistentePorServicioMesAno = await Lecturas.findOne({
-            where: { idservicio, mes, año }
-        });
-
-        if (lecturaExistentePorServicioMesAno) {
-            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
-        }
-
-        // Obtener el servicio con su configuración
-        const servicio = await Servicios.findByPk(idservicio, {
-            include: [{ model: Configuracion, as: 'configuracion' }]
-        });
-
-        if (!servicio) {
-            return res.status(404).json({ message: 'Servicio no encontrado.' });
-        }
-
-        const cuota = parseFloat(servicio.configuracion.cuota);
-        const porcentaje_base = 0.03; // 3% de mora
-        const iva = 0.12;  // 12% de IVA
-        const limiteExceso = parseFloat(servicio.configuracion.limite);
-        const porcentajeExceso = 0.10;  // 10% del valor de la cuota
-
-        // Crear la nueva lectura
-        const nuevaLectura = await Lecturas.create({
-            idservicio,
-            lectura,
-            mes,
-            año,
-            fecha,
-            url_foto,
-            idusuario,
-            uuid,
-            cuota
-        });
-
-        // Calcular el consumo del mes actual
-        const lecturaMesAnterior = await Lecturas.findOne({
-            where: {
-                idservicio,
-                mes: mes - 1 > 0 ? mes - 1 : 12,
-                año: mes - 1 > 0 ? año : año - 1
-            },
-            order: [['fecha', 'DESC']],
-            limit: 1
-        });
-
-        const lecturaAnteriorValor = lecturaMesAnterior ? parseFloat(lecturaMesAnterior.lectura) : 0;
-        const consumoActual = parseFloat(lectura) - lecturaAnteriorValor;
-
-        // Calcular el exceso solo si el consumo actual excede el límite mensual
-        let exceso = 0;
-        let montoExceso = 0;
-        if (consumoActual > limiteExceso) {
-            exceso = consumoActual - limiteExceso;
-            montoExceso = exceso * (cuota * porcentajeExceso);
-        }
-
-        // Verificar las lecturas anteriores no pagadas
-        const lecturasNoPagadas = await Lecturas.findAll({
-            where: {
-                idservicio,
-                mora_pagada: false
-            },
-            order: [['año', 'ASC'], ['mes', 'ASC']]  // Asegurarse de que las lecturas estén ordenadas por año y mes
-        });
-
-        let acumulado = 0;
-        let porcentaje_acumulado = porcentaje_base * (lecturasNoPagadas.length - 1);  // El porcentaje más alto será para la lectura más antigua
-
-        // Recorrer las lecturas no pagadas desde la más antigua hasta la más reciente
-        for (let i = 0; i < lecturasNoPagadas.length; i++) {
-            const lecturaNoPagada = lecturasNoPagadas[i];
-
-            const mesesDeAtraso = (año - lecturaNoPagada.año) * 12 + (mes - lecturaNoPagada.mes);
-            let mora = 0;
-
-            if (mesesDeAtraso > 0) {
-                mora = cuota * (porcentaje_base * mesesDeAtraso);  // Calcular mora acumulada
-                mora += mora * iva;  // Aplicar IVA
-            }
-
-            const cuotaMensualTotal = cuota + mora;  // Cuota más mora
-
-            // Sumar la cuota mensual y mora al acumulado general
-            acumulado += cuotaMensualTotal;
-
-            // Calcular el total para esa lectura (cuota_mensual + monto_exceso)
-            const total = parseFloat(cuotaMensualTotal) + parseFloat(lecturaNoPagada.monto_exceso);
-
-            // Actualizar la lectura con los valores de mora, acumulado, porcentaje acumulado y total
-            await lecturaNoPagada.update({
-                monto_mora: mora.toFixed(2),
-                cuota_mensual: cuotaMensualTotal.toFixed(2),
-                monto_acumulado: acumulado.toFixed(2),
-                mora_pagada: false,
-                total: total.toFixed(2),
-                porcentaje_acumulado: porcentaje_acumulado.toFixed(2)  // Asignar el porcentaje acumulado
-            });
-
-            // Reducir el porcentaje acumulado para la siguiente lectura más reciente
-            porcentaje_acumulado -= porcentaje_base;
-        }
-
-        // Para la nueva lectura (mes actual) que no tiene mora
-        const esUltimaLectura = lecturasNoPagadas.length === 0;
-        const cuotaMensual = cuota.toFixed(2);
-
-        acumulado = esUltimaLectura ? cuota : acumulado;
-        // Ajustar el acumulado en caso de que sea la única lectura
-
-        // El porcentaje acumulado para la nueva lectura es 0
-        const totalNuevaLectura = parseFloat(cuotaMensual) + parseFloat(montoExceso);
-
-        // Actualizar la nueva lectura creada (mes actual)
-        await nuevaLectura.update({
-            monto_mora: 0,  // Sin mora en el mes actual
-            cuota_mensual: cuotaMensual,  // Cuota del mes actual
-            monto_acumulado: acumulado.toFixed(2),  // Ajuste en el acumulado
-            exceso: exceso.toFixed(2),
-            monto_exceso: montoExceso.toFixed(2),
-            exceso_pagado: false,
-            total: totalNuevaLectura.toFixed(2),
-            porcentaje_acumulado: 0  // El mes más reciente tiene 0% de mora
-        });
-
-        res.status(201).json({
-            message: 'Lectura, exceso y moras generadas con éxito',
-            nuevaLectura,
-            excesoCreado: {
-                exceso: exceso.toFixed(2),
-                monto_exceso: montoExceso.toFixed(2)
-            }
-        });
-    } catch (error) {
-        console.error('Error en crearLectura:', error);
-        res.status(500).json({ message: 'Error al crear Lectura', error: error.message });
-    }
-};
-
-const crearLectura3 = async (req, res) => {
-    try {
-        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
-
-        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
-        const lecturaExistentePorServicioMesAno = await Lecturas.findOne({
-            where: { idservicio, mes, año }
-        });
-
-        if (lecturaExistentePorServicioMesAno) {
-            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
-        }
-
-        // Obtener el servicio con su configuración
-        const servicio = await Servicios.findByPk(idservicio, {
-            include: [{ model: Configuracion, as: 'configuracion' }]
-        });
-
-        if (!servicio) {
-            return res.status(404).json({ message: 'Servicio no encontrado.' });
-        }
-
-        const cuota = parseFloat(servicio.configuracion.cuota);
-        const porcentaje_base = 0.03; // 3% de mora
-        const iva = 0.12;  // 12% de IVA
-        const limiteExceso = parseFloat(servicio.configuracion.limite);
-        const porcentajeExceso = 0.10;  // 10% del valor de la cuota
-
-        // Crear la nueva lectura
-        const nuevaLectura = await Lecturas.create({
-            idservicio,
-            lectura,
-            mes,
-            año,
-            fecha,
-            url_foto,
-            idusuario,
-            uuid,
-            cuota
-        });
-
-        // Calcular el consumo del mes actual
-        const lecturaMesAnterior = await Lecturas.findOne({
-            where: {
-                idservicio,
-                mes: mes - 1 > 0 ? mes - 1 : 12,
-                año: mes - 1 > 0 ? año : año - 1
-            },
-            order: [['fecha', 'DESC']],
-            limit: 1
-        });
-
-        const lecturaAnteriorValor = lecturaMesAnterior ? parseFloat(lecturaMesAnterior.lectura) : 0;
-        const consumoActual = parseFloat(lectura) - lecturaAnteriorValor;
-
-        // Calcular el exceso solo si el consumo actual excede el límite mensual
-        let exceso = 0;
-        let montoExceso = 0;
-        if (consumoActual > limiteExceso) {
-            exceso = consumoActual - limiteExceso;
-            montoExceso = exceso * (cuota * porcentajeExceso);
-        }
-
-        // Verificar las lecturas anteriores no pagadas
-        const lecturasNoPagadas = await Lecturas.findAll({
-            where: {
-                idservicio,
-                mora_pagada: false
-            },
-            order: [['año', 'ASC'], ['mes', 'ASC']]  // Asegurarse de que las lecturas estén ordenadas por año y mes
-        });
-
-        let acumulado = 0;
-        let total_acumulado_exceso = 0;
-        let suma_total_acumulada = 0;  // Variable para sumar monto_acumulado + total
-
-        let porcentaje_acumulado = porcentaje_base * (lecturasNoPagadas.length - 1);  // El porcentaje más alto será para la lectura más antigua
-
-        // Recorrer las lecturas no pagadas desde la más antigua hasta la más reciente
-        for (let i = 0; i < lecturasNoPagadas.length; i++) {
-            const lecturaNoPagada = lecturasNoPagadas[i];
-
-            const mesesDeAtraso = (año - lecturaNoPagada.año) * 12 + (mes - lecturaNoPagada.mes);
-            let mora = 0;
-
-            if (mesesDeAtraso > 0) {
-                mora = cuota * (porcentaje_base * mesesDeAtraso);  // Calcular mora acumulada
-                mora += mora * iva;  // Aplicar IVA
-            }
-
-            const cuotaMensualTotal = cuota + mora;  // Cuota más mora
-
-            // Sumar la cuota mensual y mora al acumulado general
-            acumulado += cuotaMensualTotal;
-
-            // Acumular monto_exceso
-            total_acumulado_exceso += parseFloat(lecturaNoPagada.monto_exceso || 0);
-
-            // Calcular el total para esa lectura (acumulado del monto_exceso)
-            const total = total_acumulado_exceso;
-
-            // Calcular la suma total como monto_acumulado + total
-            suma_total_acumulada = acumulado + total;
-
-            // Actualizar la lectura con los valores de mora, acumulado, porcentaje acumulado, total y suma_total
-            await lecturaNoPagada.update({
-                monto_mora: mora.toFixed(2),
-                cuota_mensual: cuotaMensualTotal.toFixed(2),
-                monto_acumulado: acumulado.toFixed(2),
-                mora_pagada: false,
-                total: total.toFixed(2),
-                porcentaje_acumulado: porcentaje_acumulado.toFixed(2),  // Asignar el porcentaje acumulado
-                suma_total: suma_total_acumulada.toFixed(2)  // Asignar la suma total acumulada (monto_acumulado + total)
-            });
-
-            // Reducir el porcentaje acumulado para la siguiente lectura más reciente
-            porcentaje_acumulado -= porcentaje_base;
-        }
-
-        // Para la nueva lectura (mes actual) que no tiene mora
-        const esUltimaLectura = lecturasNoPagadas.length === 0;
-        const cuotaMensual = cuota.toFixed(2);
-
-        acumulado = esUltimaLectura ? cuota : acumulado;
-
-        // El porcentaje acumulado para la nueva lectura es 0
-        total_acumulado_exceso += parseFloat(montoExceso);
-        const totalNuevaLectura = total_acumulado_exceso;
-        suma_total_acumulada = acumulado + totalNuevaLectura;  // Sumar el acumulado con el total para la nueva lectura
-
-        // Actualizar la nueva lectura creada (mes actual)
-        await nuevaLectura.update({
-            monto_mora: 0,  // Sin mora en el mes actual
-            cuota_mensual: cuotaMensual,  // Cuota del mes actual
-            monto_acumulado: acumulado.toFixed(2),  // Ajuste en el acumulado
-            exceso: exceso.toFixed(2),
-            monto_exceso: montoExceso.toFixed(2),
-            exceso_pagado: false,
-            total: totalNuevaLectura.toFixed(2),
-            porcentaje_acumulado: 0,  // El mes más reciente tiene 0% de mora
-            suma_total: suma_total_acumulada.toFixed(2)  // Asignar la suma total acumulada (monto_acumulado + total)
-        });
-
-        res.status(201).json({
-            message: 'Lectura, exceso y moras generadas con éxito',
-            nuevaLectura,
-            excesoCreado: {
-                exceso: exceso.toFixed(2),
-                monto_exceso: montoExceso.toFixed(2)
-            }
-        });
-    } catch (error) {
-        console.error('Error en crearLectura:', error);
-        res.status(500).json({ message: 'Error al crear Lectura', error: error.message });
-    }
-};
-
-const crearLecturaActual = async (req, res) => {
-    try {
-        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
-
-        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
-        const lecturaExistentePorServicioMesAno = await Lecturas.findOne({
-            where: { idservicio, mes, año }
-        });
-
-        if (lecturaExistentePorServicioMesAno) {
-            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
-        }
-
-        // Obtener el servicio con su configuración
-        const servicio = await Servicios.findByPk(idservicio, {
-            include: [{ model: Configuracion, as: 'configuracion' }]
-        });
-
-        if (!servicio) {
-            return res.status(404).json({ message: 'Servicio no encontrado.' });
-        }
-
-        const cuota = parseFloat(servicio.configuracion.cuota);
-        const porcentaje_base = 0.03; // 3% de mora
-        const iva = 0.12;  // 12% de IVA
-        const limiteExceso = parseFloat(servicio.configuracion.limite);
-        const porcentajeExceso = 0.10;  // 10% del valor de la cuota
-
-        // Verificar si la lectura es anterior al inicio del servicio
-        if (
-            año < servicio.anio_inicio_lectura ||
-            (año === servicio.anio_inicio_lectura && mes < servicio.mes_inicio_lectura)
-        ) {
-            const nuevaLectura = await Lecturas.create({
-                idservicio,
-                lectura,
-                mes,
-                año,
-                fecha,
-                url_foto,
-                idusuario,
-                uuid,
-                cuota: 0,
-                monto_mora: 0,
-                monto_acumulado: 0,
-                porcentaje_acumulado: 0,
-                cuota_mensual: 0,
-                exceso: 0,
-                monto_exceso: 0,
-                suma_total: 0,
-                lectura_pagada: true,
-                mora_pagada: true,
-                exceso_pagado: true
-            });
-
-            return res.status(201).json({
-                message: 'Lectura registrada con valores en cero por ser anterior al inicio del servicio',
-                nuevaLectura
-            });
-        }
-
-        // Verificar si existe un pago adelantado para este servicio, mes y año
-        const pagoAdelantado = await Pagos_Adelantados.findOne({
-            where: { idservicio, mes, año }
-        });
-
-        let mora = 0;
-        let acumulado = 0;
-        let mora_pagada = false;
-        let cuota_mensual = cuota;
-        let lectura_pagada = false;
-        let cuotaLectura = cuota;
-
-        if (pagoAdelantado) {
-            mora_pagada = true;
-            lectura_pagada = true;
-            mora = 0;
-            acumulado = 0;
-            cuota_mensual = 0;
-            cuotaLectura = 0; // La cuota será cero porque ya fue pagada
-        }
-
-        // Crear la nueva lectura
-        const nuevaLectura = await Lecturas.create({
-            idservicio,
-            lectura,
-            mes,
-            año,
-            fecha,
-            url_foto,
-            idusuario,
-            uuid,
-            cuota: cuotaLectura
-        });
-
-        // Calcular el consumo del mes actual
-        const lecturaMesAnterior = await Lecturas.findOne({
-            where: {
-                idservicio,
-                mes: mes - 1 > 0 ? mes - 1 : 12,
-                año: mes - 1 > 0 ? año : año - 1
-            },
-            order: [['fecha', 'DESC']],
-            limit: 1
-        });
-
-        const lecturaAnteriorValor = lecturaMesAnterior ? parseFloat(lecturaMesAnterior.lectura) : 0;
-        const consumoActual = parseFloat(lectura) - lecturaAnteriorValor;
-
-        // Calcular el exceso solo si el consumo actual excede el límite mensual
-        let exceso = 0;
-        let montoExceso = 0;
-        if (consumoActual > limiteExceso) {
-            exceso = consumoActual - limiteExceso;
-            montoExceso = exceso * (cuota * porcentajeExceso);
-        }
-
-        // Verificar las lecturas anteriores no pagadas
-        const lecturasNoPagadas = await Lecturas.findAll({
-            where: {
-                idservicio,
-                mora_pagada: false
-            },
-            order: [['año', 'ASC'], ['mes', 'ASC']]  // Asegurarse de que las lecturas estén ordenadas por año y mes
-        });
-
-        let total_acumulado_exceso = 0;
-        let suma_total_acumulada = 0;  // Variable para sumar monto_acumulado + total
-
-        let porcentaje_acumulado = porcentaje_base * (lecturasNoPagadas.length - 1);  // El porcentaje más alto será para la lectura más antigua
-
-        // Recorrer las lecturas no pagadas desde la más antigua hasta la más reciente
-        for (let i = 0; i < lecturasNoPagadas.length; i++) {
-            const lecturaNoPagada = lecturasNoPagadas[i];
-
-            const mesesDeAtraso = (año - lecturaNoPagada.año) * 12 + (mes - lecturaNoPagada.mes);
-            let moraLectura = 0;
-
-            if (mesesDeAtraso > 0) {
-                moraLectura = cuota * (porcentaje_base * mesesDeAtraso);  // Calcular mora acumulada
-                moraLectura += moraLectura * iva;  // Aplicar IVA
-            }
-
-            const cuotaMensualTotal = cuota + moraLectura;  // Cuota más mora
-
-            // Sumar la cuota mensual y mora al acumulado general
-            acumulado += cuotaMensualTotal;
-
-            // Acumular monto_exceso
-            total_acumulado_exceso += parseFloat(lecturaNoPagada.monto_exceso || 0);
-
-            // Calcular el total para esa lectura (acumulado del monto_exceso)
-            const total = total_acumulado_exceso;
-
-            // Calcular la suma total como monto_acumulado + total
-            suma_total_acumulada = acumulado + total;
-
-            // Actualizar la lectura con los valores de mora, acumulado, porcentaje acumulado, total y suma_total
-            await lecturaNoPagada.update({
-                monto_mora: moraLectura.toFixed(2),
-                cuota_mensual: cuotaMensualTotal.toFixed(2),
-                monto_acumulado: acumulado.toFixed(2),
-                mora_pagada: false,
-                total: total.toFixed(2),
-                porcentaje_acumulado: porcentaje_acumulado.toFixed(2),  // Asignar el porcentaje acumulado
-                suma_total: suma_total_acumulada.toFixed(2)  // Asignar la suma total acumulada (monto_acumulado + total)
-            });
-
-            // Reducir el porcentaje acumulado para la siguiente lectura más reciente
-            porcentaje_acumulado -= porcentaje_base;
-        }
-
-        // Para la nueva lectura (mes actual) que no tiene mora
-        const esUltimaLectura = lecturasNoPagadas.length === 0;
-        const cuotaMensualFinal = cuotaLectura.toFixed(2);
-
-        acumulado = esUltimaLectura ? cuotaLectura : acumulado;
-
-        // El porcentaje acumulado para la nueva lectura es 0
-        total_acumulado_exceso += parseFloat(montoExceso);
-        const totalNuevaLectura = total_acumulado_exceso;
-        suma_total_acumulada = acumulado + totalNuevaLectura;  // Sumar el acumulado con el total para la nueva lectura
-
-        // Actualizar la nueva lectura creada (mes actual)
-        await nuevaLectura.update({
-            monto_mora: mora,
-            cuota_mensual: cuotaMensualFinal,  // Cuota del mes actual
-            monto_acumulado: acumulado.toFixed(2),  // Ajuste en el acumulado
-            exceso: exceso.toFixed(2),
-            monto_exceso: montoExceso.toFixed(2),
-            exceso_pagado: false,
-            total: totalNuevaLectura.toFixed(2),
-            porcentaje_acumulado: 0,  // El mes más reciente tiene 0% de mora
-            suma_total: suma_total_acumulada.toFixed(2),  // Asignar la suma total acumulada (monto_acumulado + total)
-            lectura_pagada,
-            mora_pagada
-        });
-
-        res.status(201).json({
-            message: 'Lectura, exceso y moras generadas con éxito',
-            nuevaLectura,
-            excesoCreado: {
-                exceso: exceso.toFixed(2),
-                monto_exceso: montoExceso.toFixed(2)
-            }
-        });
-    } catch (error) {
-        console.error('Error en crearLectura:', error);
-        res.status(500).json({ message: 'Error al crear Lectura', error: error.message });
-    }
-};
-
-
-const crearLecturaMorasYExcesoslistos = async (req, res) => {
+const crearLectura99 = async (req, res) => {
     try {
         const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
 
@@ -640,209 +152,9 @@ const crearLecturaMorasYExcesoslistos = async (req, res) => {
         }
 
         const { mes_inicio_lectura, anio_inicio_lectura } = servicio;
+        const { porcentaje_exceso, limite, porcentaje_mora } = servicio.configuracion;
 
-        // Verificar si la lectura es anterior al inicio de lecturas
-        if ((año < anio_inicio_lectura) || (año === anio_inicio_lectura && mes < mes_inicio_lectura)) {
-            // La lectura no se cobra, se guarda como exonerada
-            const nuevaLecturaExonerada = await Lecturas.create({
-                idservicio,
-                lectura,
-                mes,
-                año,
-                fecha,
-                url_foto,
-                idusuario,
-                uuid,
-                monto_mora: 0,
-                monto_acumulado: 0,
-                mora_pagada: true,
-                cuota: 0,
-                cuota_mensual: 0,
-                exceso: 0,
-                exceso_pagado: true,
-                porcentaje_acumulado: 0,
-                total: 0,
-                suma_total: 0,
-                lectura_pagada: true
-            });
-
-            return res.status(201).json({
-                message: 'Lectura exonerada creada con éxito',
-                nuevaLecturaExonerada
-            });
-        }
-
-        // Verificar si ya existe una lectura con el mismo idservicio, mes y año
-        const lecturaExistentePorServicioMesAno = await Lecturas.findOne({
-            where: { idservicio, mes, año }
-        });
-
-        if (lecturaExistentePorServicioMesAno) {
-            return res.status(400).json({ message: 'Ya existe una lectura para este servicio en el mismo mes y año.' });
-        }
-
-        const cuota = parseFloat(servicio.configuracion.cuota);
-        const porcentaje_base = 0.03; // 3% de mora
-        const iva = 0.12;  // 12% de IVA
-        const limiteExceso = parseFloat(servicio.configuracion.limite);
-        const porcentajeExceso = 0.10;  // 10% del valor de la cuota
-
-        // Crear la nueva lectura
-        const nuevaLectura = await Lecturas.create({
-            idservicio,
-            lectura,
-            mes,
-            año,
-            fecha,
-            url_foto,
-            idusuario,
-            uuid,
-            cuota
-        });
-
-        // Calcular el consumo del mes actual
-        const lecturaMesAnterior = await Lecturas.findOne({
-            where: {
-                idservicio,
-                [Op.or]: [
-                    { año: { [Op.eq]: año }, mes: { [Op.lt]: mes } },
-                    { año: { [Op.lt]: año } }
-                ]
-            },
-            order: [['año', 'DESC'], ['mes', 'DESC']],
-            limit: 1
-        });
-
-        // Usar lectura_inicial si no hay lectura anterior
-        const lecturaAnteriorValor = lecturaMesAnterior ? parseFloat(lecturaMesAnterior.lectura) : parseFloat(servicio.lectura_inicial);
-        const consumoActual = parseFloat(lectura) - lecturaAnteriorValor;
-
-        // Calcular el exceso solo si el consumo actual excede el límite mensual
-        let exceso = 0;
-        let montoExceso = 0;
-        if (consumoActual > limiteExceso) {
-            exceso = consumoActual - limiteExceso;
-            montoExceso = cuota * porcentajeExceso * exceso;  // Cálculo corregido
-        }
-
-        // Verificar las lecturas anteriores no pagadas (antes de la lectura actual)
-        const lecturasNoPagadas = await Lecturas.findAll({
-            where: {
-                idservicio,
-                mora_pagada: false,
-                [Op.or]: [
-                    { año: { [Op.lt]: año } },
-                    { año: año, mes: { [Op.lt]: mes } }
-                ]
-            },
-            order: [['año', 'ASC'], ['mes', 'ASC']]
-        });
-
-        let acumulado = 0;
-        let total_acumulado_exceso = 0;
-        let suma_total_acumulada = 0;
-
-        // Procesar lecturas no pagadas
-        for (let lecturaNoPagada of lecturasNoPagadas) {
-            // Calcular meses de atraso
-            const mesesDeAtraso = ((año - lecturaNoPagada.año) * 12) + (mes - lecturaNoPagada.mes);
-
-            // Calcular el porcentaje de mora acumulado
-            const porcentajeMora = porcentaje_base * mesesDeAtraso;  // Por ejemplo, 0.03 * 2 meses = 0.06
-
-            // Convertir el porcentaje a porcentaje para mostrar (0.06 * 100 = 6%)
-            const porcentajeMoraMostrar = porcentajeMora * 100;
-
-            // Calcular mora acumulada
-            let mora = 0;
-            if (mesesDeAtraso > 0) {
-                mora = cuota * porcentajeMora;
-                mora += mora * iva;  // Aplicar IVA
-            }
-
-            const cuotaMensualTotal = cuota + mora;
-
-            // Sumar la cuota mensual y mora al acumulado general
-            acumulado += cuotaMensualTotal;
-
-            // Acumular monto_exceso
-            total_acumulado_exceso += parseFloat(lecturaNoPagada.monto_exceso || 0);
-
-            // Calcular la suma total acumulada
-            suma_total_acumulada = acumulado + total_acumulado_exceso;
-
-            // Actualizar la lectura con los valores calculados
-            await lecturaNoPagada.update({
-                monto_mora: mora.toFixed(2),
-                cuota_mensual: cuotaMensualTotal.toFixed(2),
-                monto_acumulado: acumulado.toFixed(2),
-                mora_pagada: false,
-                total: total_acumulado_exceso.toFixed(2),
-                suma_total: suma_total_acumulada.toFixed(2),
-                porcentaje_acumulado: porcentajeMoraMostrar.toFixed(2)  // Actualizar el porcentaje acumulado
-            });
-        }
-
-        // Para la nueva lectura (mes actual)
-        const cuotaMensual = cuota.toFixed(2);
-
-        // Sumar la cuota del mes actual al acumulado
-        acumulado += parseFloat(cuotaMensual);
-
-        // Sumar el monto del exceso al total acumulado de excesos
-        total_acumulado_exceso += parseFloat(montoExceso);
-
-        // Calcular la suma total acumulada
-        suma_total_acumulada = acumulado + total_acumulado_exceso;
-
-        // La nueva lectura no tiene mora, por lo que el porcentaje es 0%
-        const porcentajeMoraNuevaLectura = 0;
-
-        // Actualizar la nueva lectura creada (mes actual)
-        await nuevaLectura.update({
-            monto_mora: 0,  // Sin mora en el mes actual
-            cuota_mensual: cuotaMensual,
-            monto_acumulado: acumulado.toFixed(2),
-            exceso: exceso.toFixed(2),
-            monto_exceso: montoExceso.toFixed(2),
-            exceso_pagado: false,
-            total: total_acumulado_exceso.toFixed(2),
-            suma_total: suma_total_acumulada.toFixed(2),
-            lectura_pagada: false,
-            mora_pagada: false,
-            porcentaje_acumulado: porcentajeMoraNuevaLectura.toFixed(2)  // 0% para la nueva lectura
-        });
-
-        res.status(201).json({
-            message: 'Lectura, exceso y moras generadas con éxito',
-            nuevaLectura,
-            excesoCreado: {
-                exceso: exceso.toFixed(2),
-                monto_exceso: montoExceso.toFixed(2)
-            }
-        });
-    } catch (error) {
-        console.error('Error en crearLectura:', error);
-        res.status(500).json({ message: 'Error al crear Lectura', error: error.message });
-    }
-};
-
-
-const crearLecturaYacasi = async (req, res) => {
-    try {
-        const { idservicio, lectura, mes, año, fecha, url_foto, idusuario, uuid } = req.body;
-
-        // Obtener el servicio con su configuración
-        const servicio = await Servicios.findByPk(idservicio, {
-            include: [{ model: Configuracion, as: 'configuracion' }]
-        });
-
-        if (!servicio) {
-            return res.status(404).json({ message: 'Servicio no encontrado.' });
-        }
-
-        const { mes_inicio_lectura, anio_inicio_lectura } = servicio;
-        const porcentajeExceso = 0.10;  // 10% del valor de la cuota
+        const porcentajeExceso = porcentaje_exceso;  // 10% del valor de la cuota
 
         // Verificar si la lectura es anterior al inicio de lecturas
         if ((año < anio_inicio_lectura) || (año === anio_inicio_lectura && mes < mes_inicio_lectura)) {
@@ -933,8 +245,8 @@ const crearLecturaYacasi = async (req, res) => {
             // Si hay exceso (diferencia de lecturas mayor a 30), calcularlo normalmente
             let exceso = 0;
             let montoExceso = 0;
-            if (consumoActual > 30) {
-                exceso = consumoActual - 30;
+            if (consumoActual > limite) {
+                exceso = consumoActual - limite;
                 montoExceso = pagoAdelantado.cuota * porcentajeExceso * exceso;
                 await nuevaLecturaPagada.update({
                     exceso: exceso.toFixed(2),
@@ -971,7 +283,7 @@ const crearLecturaYacasi = async (req, res) => {
         }
 
         const cuota = parseFloat(servicio.configuracion.cuota);
-        const porcentaje_base = 0.03; // 3% de mora
+        const porcentaje_base = porcentaje_mora; // 3% de mora
         const iva = 0.12;  // 12% de IVA
         const limiteExceso = parseFloat(servicio.configuracion.limite);
 
@@ -991,8 +303,8 @@ const crearLecturaYacasi = async (req, res) => {
         // Calcular el exceso solo si el consumo actual excede 30
         let exceso = 0;
         let montoExceso = 0;
-        if (consumoActual > 30) {
-            exceso = consumoActual - 30;
+        if (consumoActual > limite) {
+            exceso = consumoActual - limite;
             montoExceso = cuota * porcentajeExceso * exceso;  // Cálculo corregido
         }
 
@@ -1272,7 +584,8 @@ const crearLectura = async (req, res) => {
         const lecturasNoPagadas = await Lecturas.findAll({
             where: {
                 idservicio,
-                mora_pagada: false,
+                lectura_pagada: false,
+                // mora_pagada: false,
                 [Op.or]: [
                     { año: { [Op.lt]: año } },
                     { año: año, mes: { [Op.lt]: mes } }
@@ -1426,8 +739,6 @@ const actualizarLecturaParcial = async (req, res) => {
         res.status(500).json({ message: 'Error actualizando la lectura', error: error.message });
     }
 };
-
-
 
 const actualizarLecturaPagada = async (req, res) => {
     const { idlectura } = req.params; // Obtener el ID de la lectura
@@ -1638,5 +949,6 @@ module.exports = {
     mostrarLecturasIdServicio,
     actualizarLecturaPagada,
     mostrarLecturasPagadasPorServicio,
-    actualizarLecturaParcial
+    actualizarLecturaParcial,
+    mostrarReporteLecturas
 };
