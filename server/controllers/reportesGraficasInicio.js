@@ -80,11 +80,30 @@ const mostrarResumenPagos = async (req, res) => {
     SUM(cuota) AS totalCuotas,
     SUM(mora) AS totalMoras,
     SUM(monto_exceso) AS totalExcesos
+      FROM (
+        SELECT 
+          mes,
+          año,
+          cuota,
+          mora,
+          monto_exceso
+      FROM 
+        tblpagos
+
+    UNION ALL
+
+    SELECT 
+        mes,
+        año,
+        cuota,
+        mora,
+        monto_exceso
     FROM 
-    tblpagos
-    GROUP BY 
+        tblpagos_adelantados
+    ) AS pagos_combinados
+  GROUP BY 
     mes, año
-    ORDER BY 
+  ORDER BY 
     año, mes;
     `;
 
@@ -105,4 +124,59 @@ const mostrarResumenPagos = async (req, res) => {
   }
 };
 
-module.exports = { mostrarResumenLecturas, mostrarResumenServicios, mostrarResumenPagos };
+
+// Controlador que retorna el resumen de pagos por mes y año
+const mostrarResumenPagos_Estadistica = async (req, res) => {
+  try {
+    const query = `
+    SELECT 
+    año,
+    mes,
+    SUM(cuota) AS totalCuotas,
+    SUM(mora) AS totalMoras,
+    SUM(monto_exceso) AS totalExcesos
+    FROM (
+        SELECT 
+            mes,
+            año,
+            cuota,
+            mora,
+            monto_exceso
+        FROM 
+            tblpagos
+
+        UNION ALL
+
+        SELECT 
+            mes,
+            año,
+            cuota,
+            mora,
+            monto_exceso
+        FROM 
+            tblpagos_adelantados
+    ) AS pagos_combinados
+    GROUP BY 
+        año, mes
+    ORDER BY 
+        año, mes;
+    `;
+
+    // Ejecutar la consulta directamente en la base de datos
+    const [results, metadata] = await sequelize.query(query);
+
+    // Retornar los resultados en la respuesta de la API
+    return res.status(200).json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error en la consulta de servicios:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error al obtener las servicios'
+    });
+  }
+};
+
+module.exports = { mostrarResumenLecturas, mostrarResumenServicios, mostrarResumenPagos, mostrarResumenPagos_Estadistica };

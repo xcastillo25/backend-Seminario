@@ -4,4 +4,5 @@ module.exports = (app) => {
     app.get('/api/mostrarResumenLecturas', reportesGraficasInicioController.mostrarResumenLecturas);
     app.get('/api/mostrarResumenServicios', reportesGraficasInicioController.mostrarResumenServicios);
     app.get('/api/mostrarResumenPagos', reportesGraficasInicioController.mostrarResumenPagos);
+    app.get('/api/mostrarResumenPagosEstadistica', reportesGraficasInicioController.mostrarResumenPagos_Estadistica);
 }
