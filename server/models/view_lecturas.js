@@ -36,6 +36,9 @@ module.exports = (sequelize, DataTypes) => {
             },
             url_foto: {
                 type: DataTypes.STRING
+            },
+            estatus_contador: {
+                type:DataTypes.STRING
             }
         }, 
         {

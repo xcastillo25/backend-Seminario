@@ -9,10 +9,7 @@ module.exports = {
         host: process.env.DB_HOST,
         dialect: 'mysql',
         dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false,
-            }
+            ssl: false // Cambia a false para deshabilitar la conexión SSL
         },
         logging: false,
     },
